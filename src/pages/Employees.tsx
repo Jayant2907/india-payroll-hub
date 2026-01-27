@@ -5,10 +5,10 @@ import {
   Download, 
   Upload, 
   Pencil, 
-  Trash2, 
-  Filter,
+  Trash2,
   UserPlus,
-  Users
+  Users,
+  Filter
 } from 'lucide-react';
 import { 
   BentoCard, 
@@ -16,6 +16,7 @@ import {
   BentoCardTitle, 
   BentoCardContent 
 } from '@/components/ui/bento-card';
+import { PageHeader, PageContainer, EmptyState } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +41,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { getEmployees, setEmployees, getSalaryStructures } from '@/lib/storage';
 import { EmployeeForm } from '@/components/employees/EmployeeForm';
 import type { Employee } from '@/types/payroll';
@@ -165,7 +171,6 @@ export default function Employees() {
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-        // Transform and validate imported data
         const importedEmployees: Employee[] = jsonData.map((row: any, index: number) => ({
           id: `emp-import-${Date.now()}-${index}`,
           firstName: row['First Name'] || '',
@@ -230,77 +235,96 @@ export default function Employees() {
     }).format(value);
   };
 
+  const activeCount = employees.filter(e => e.status === 'active').length;
+
   return (
-    <div className="space-y-6">
+    <PageContainer>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Employees</h1>
-          <p className="text-muted-foreground">
-            Manage your workforce and employee information
-          </p>
-        </div>
-        <Button onClick={handleAddEmployee} className="gap-2">
-          <UserPlus className="h-4 w-4" />
-          Add Employee
-        </Button>
-      </div>
+      <PageHeader
+        title="Employees"
+        description="Manage your workforce and employee information"
+        icon={<Users className="h-7 w-7 text-primary" />}
+        badge={
+          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+            {activeCount} Active
+          </Badge>
+        }
+        actions={
+          <Button onClick={handleAddEmployee} className="gap-2 shadow-lg shadow-primary/20">
+            <UserPlus className="h-4 w-4" />
+            Add Employee
+          </Button>
+        }
+      />
 
       {/* Filters */}
       <BentoCard>
         <div className="flex flex-wrap items-center gap-4">
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative flex-1 min-w-[250px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search by name, email, or code..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-muted/30 border-border/50"
             />
           </div>
           
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="resigned">Resigned</SelectItem>
-              <SelectItem value="terminated">Terminated</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-36 bg-muted/30 border-border/50">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="resigned">Resigned</SelectItem>
+                <SelectItem value="terminated">Terminated</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Department" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Departments</SelectItem>
-              {departments.map(dept => (
-                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+              <SelectTrigger className="w-40 bg-muted/30 border-border/50">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {departments.map(dept => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={handleExportExcel}>
-              <Download className="h-4 w-4" />
-            </Button>
-            <label>
-              <Button variant="outline" size="icon" asChild>
-                <span>
-                  <Upload className="h-4 w-4" />
-                </span>
-              </Button>
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={handleImportExcel}
-                className="hidden"
-              />
-            </label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" onClick={handleExportExcel} className="bg-muted/30">
+                  <Download className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Export to Excel</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <label>
+                  <Button variant="outline" size="icon" asChild className="bg-muted/30">
+                    <span>
+                      <Upload className="h-4 w-4" />
+                    </span>
+                  </Button>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleImportExcel}
+                    className="hidden"
+                  />
+                </label>
+              </TooltipTrigger>
+              <TooltipContent>Import from Excel</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </BentoCard>
@@ -308,41 +332,63 @@ export default function Employees() {
       {/* Employee Table */}
       <BentoCard>
         <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>CTC</TableHead>
-                <TableHead>Structure</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEmployees.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12">
-                    <Users className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">No employees found</p>
-                  </TableCell>
+          {filteredEmployees.length === 0 ? (
+            <EmptyState
+              icon={<Users className="h-10 w-10" />}
+              title="No employees found"
+              description={searchQuery || statusFilter !== 'all' || departmentFilter !== 'all' 
+                ? "Try adjusting your search or filters" 
+                : "Get started by adding your first employee"}
+              action={
+                employees.length === 0 ? (
+                  <Button onClick={handleAddEmployee} className="gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Add First Employee
+                  </Button>
+                ) : undefined
+              }
+            />
+          ) : (
+            <Table className="premium-table">
+              <TableHeader>
+                <TableRow className="border-border/50 hover:bg-transparent">
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>CTC</TableHead>
+                  <TableHead>Structure</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                filteredEmployees.map((employee) => (
-                  <TableRow key={employee.id}>
+              </TableHeader>
+              <TableBody>
+                {filteredEmployees.map((employee, index) => (
+                  <TableRow 
+                    key={employee.id} 
+                    className="border-border/30 group"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
                     <TableCell>
-                      <div>
-                        <p className="font-medium">
-                          {employee.firstName} {employee.lastName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {employee.employeeCode}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary font-semibold text-sm">
+                          {employee.firstName[0]}{employee.lastName[0]}
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {employee.firstName} {employee.lastName}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {employee.employeeCode}
+                          </p>
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell>{employee.role}</TableCell>
-                    <TableCell>{employee.department}</TableCell>
+                    <TableCell className="text-muted-foreground">{employee.role}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="bg-muted/50">
+                        {employee.department}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
@@ -357,40 +403,51 @@ export default function Employees() {
                         {employee.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatCurrency(employee.annualCTC)}</TableCell>
-                    <TableCell>{getStructureName(employee.salaryStructureId)}</TableCell>
+                    <TableCell className="font-medium">{formatCurrency(employee.annualCTC)}</TableCell>
+                    <TableCell className="text-muted-foreground">{getStructureName(employee.salaryStructureId)}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditEmployee(employee)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteEmployee(employee.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditEmployee(employee)}
+                              className="h-8 w-8"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteEmployee(employee.id)}
+                              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Delete</TooltipContent>
+                        </Tooltip>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </div>
       </BentoCard>
 
       {/* Employee Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto glass-card border-border/50">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-xl font-bold">
               {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
             </DialogTitle>
           </DialogHeader>
@@ -401,6 +458,6 @@ export default function Employees() {
           />
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }

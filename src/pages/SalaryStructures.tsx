@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import { Plus, Pencil, Trash2, Wallet, Library } from 'lucide-react';
+import { Plus, Pencil, Trash2, Wallet, Library, Package } from 'lucide-react';
 import { BentoCard, BentoCardHeader, BentoCardTitle, BentoCardContent } from '@/components/ui/bento-card';
+import { PageHeader, PageContainer, EmptyState } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { getMasterComponents, setMasterComponents, getSalaryStructures, setSalaryStructures } from '@/lib/storage';
 import type { SalaryComponent, SalaryStructure, ComponentType, CalculationType, SalaryStructureComponent } from '@/types/payroll';
 import { useToast } from '@/hooks/use-toast';
@@ -221,23 +227,26 @@ export default function SalaryStructures() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Salary Structures</h1>
-        <p className="text-muted-foreground">
-          Manage salary components and create structure templates
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Salary Structures"
+        description="Manage salary components and create structure templates"
+        icon={<Wallet className="h-7 w-7 text-primary" />}
+        badge={
+          <Badge className="bg-primary/20 text-primary border-primary/30">
+            {structures.length} Structures
+          </Badge>
+        }
+      />
 
       <Tabs defaultValue="components" className="space-y-6">
-        <TabsList className="glass-card">
-          <TabsTrigger value="components" className="gap-2">
+        <TabsList className="premium-tabs">
+          <TabsTrigger value="components" className="gap-2 rounded-lg">
             <Library className="h-4 w-4" />
             Master Components
           </TabsTrigger>
-          <TabsTrigger value="structures" className="gap-2">
-            <Wallet className="h-4 w-4" />
+          <TabsTrigger value="structures" className="gap-2 rounded-lg">
+            <Package className="h-4 w-4" />
             Salary Structures
           </TabsTrigger>
         </TabsList>
@@ -246,16 +255,21 @@ export default function SalaryStructures() {
         <TabsContent value="components">
           <BentoCard>
             <BentoCardHeader>
-              <BentoCardTitle>Component Library</BentoCardTitle>
-              <Button onClick={() => { resetComponentForm(); setIsComponentDialogOpen(true); }} className="gap-2">
+              <BentoCardTitle className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20">
+                  <Library className="h-4 w-4 text-primary" />
+                </div>
+                Component Library
+              </BentoCardTitle>
+              <Button onClick={() => { resetComponentForm(); setIsComponentDialogOpen(true); }} className="gap-2 shadow-lg shadow-primary/20">
                 <Plus className="h-4 w-4" />
                 Add Component
               </Button>
             </BentoCardHeader>
             <BentoCardContent>
-              <Table>
+              <Table className="premium-table">
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="border-border/50">
                     <TableHead>Name</TableHead>
                     <TableHead>Code</TableHead>
                     <TableHead>Type</TableHead>
@@ -268,13 +282,13 @@ export default function SalaryStructures() {
                 </TableHeader>
                 <TableBody>
                   {masterComponents.map((component) => (
-                    <TableRow key={component.id}>
+                    <TableRow key={component.id} className="border-border/30 group">
                       <TableCell className="font-medium">{component.name}</TableCell>
                       <TableCell>
-                        <code className="text-xs bg-muted px-2 py-1 rounded">{component.code}</code>
+                        <code className="text-xs bg-muted/50 px-2 py-1 rounded-md font-mono">{component.code}</code>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={component.type === 'earning' ? 'default' : 'destructive'}>
+                        <Badge variant={component.type === 'earning' ? 'default' : 'destructive'} className="text-xs">
                           {component.type}
                         </Badge>
                       </TableCell>
@@ -283,7 +297,7 @@ export default function SalaryStructures() {
                         {component.calculationType === 'percentage_of_basic' && '% of Basic'}
                         {component.calculationType === 'percentage_of_ctc' && '% of CTC'}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="font-medium">
                         {component.calculationType === 'fixed' ? `₹${component.value}` : `${component.value}%`}
                       </TableCell>
                       <TableCell>
@@ -297,18 +311,28 @@ export default function SalaryStructures() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => openEditComponent(component)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteComponent(component.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon" onClick={() => openEditComponent(component)} className="h-8 w-8">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Edit</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteComponent(component.id)}
+                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete</TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -323,57 +347,69 @@ export default function SalaryStructures() {
         <TabsContent value="structures">
           <BentoCard>
             <BentoCardHeader>
-              <BentoCardTitle>Salary Structure Templates</BentoCardTitle>
-              <Button onClick={() => { resetStructureForm(); setIsStructureDialogOpen(true); }} className="gap-2">
+              <BentoCardTitle className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20">
+                  <Package className="h-4 w-4 text-emerald-400" />
+                </div>
+                Salary Structure Templates
+              </BentoCardTitle>
+              <Button onClick={() => { resetStructureForm(); setIsStructureDialogOpen(true); }} className="gap-2 shadow-lg shadow-primary/20">
                 <Plus className="h-4 w-4" />
                 Create Structure
               </Button>
             </BentoCardHeader>
             <BentoCardContent>
               {structures.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <Wallet className="mb-4 h-12 w-12 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">No salary structures created yet.</p>
-                  <p className="text-sm text-muted-foreground/70">
-                    Create your first structure to assign to employees.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={<Wallet className="h-10 w-10" />}
+                  title="No salary structures created"
+                  description="Create your first structure to assign to employees"
+                  action={
+                    <Button onClick={() => { resetStructureForm(); setIsStructureDialogOpen(true); }} className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Create Structure
+                    </Button>
+                  }
+                />
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                   {structures.map((structure) => (
-                    <BentoCard key={structure.id} className="bg-muted/30">
-                      <div className="flex items-start justify-between">
+                    <div 
+                      key={structure.id} 
+                      className="glass-card-hover p-6 group"
+                    >
+                      <div className="flex items-start justify-between mb-4">
                         <div>
-                          <h3 className="font-semibold">{structure.name}</h3>
-                          <p className="text-sm text-muted-foreground">{structure.description}</p>
+                          <h3 className="font-semibold text-foreground text-lg">{structure.name}</h3>
+                          <p className="text-sm text-muted-foreground mt-1">{structure.description}</p>
                         </div>
                         <Badge variant="outline" className={structure.isActive ? 'status-active' : 'status-inactive'}>
                           {structure.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </div>
-                      <div className="mt-4 flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 mb-4">
                         {structure.components.map((comp) => (
-                          <Badge key={comp.componentId} variant="secondary" className="text-xs">
+                          <Badge key={comp.componentId} variant="secondary" className="text-xs bg-muted/50">
                             {comp.componentCode}
                           </Badge>
                         ))}
                       </div>
-                      <div className="mt-4 flex justify-end gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => openEditStructure(structure)}>
-                          <Pencil className="h-4 w-4 mr-1" />
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="outline" size="sm" onClick={() => openEditStructure(structure)} className="gap-1">
+                          <Pencil className="h-3 w-3" />
                           Edit
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => handleDeleteStructure(structure.id)}
-                          className="text-destructive hover:text-destructive"
+                          className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
+                          <Trash2 className="h-3 w-3" />
                           Delete
                         </Button>
                       </div>
-                    </BentoCard>
+                    </div>
                   ))}
                 </div>
               )}
@@ -384,36 +420,38 @@ export default function SalaryStructures() {
 
       {/* Component Dialog */}
       <Dialog open={isComponentDialogOpen} onOpenChange={setIsComponentDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg glass-card border-border/50">
           <DialogHeader>
-            <DialogTitle>{editingComponent ? 'Edit Component' : 'Add New Component'}</DialogTitle>
+            <DialogTitle className="text-xl font-bold">{editingComponent ? 'Edit Component' : 'Add New Component'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Component Name</Label>
+                <Label className="text-muted-foreground">Component Name</Label>
                 <Input
                   value={componentForm.name}
                   onChange={(e) => setComponentForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="bg-muted/30 border-border/50"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Code</Label>
+                <Label className="text-muted-foreground">Code</Label>
                 <Input
                   value={componentForm.code}
                   onChange={(e) => setComponentForm(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                  className="bg-muted/30 border-border/50 font-mono"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Type</Label>
+                <Label className="text-muted-foreground">Type</Label>
                 <Select
                   value={componentForm.type}
                   onValueChange={(value) => setComponentForm(prev => ({ ...prev, type: value as ComponentType }))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-muted/30 border-border/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -423,12 +461,12 @@ export default function SalaryStructures() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Calculation Type</Label>
+                <Label className="text-muted-foreground">Calculation Type</Label>
                 <Select
                   value={componentForm.calculationType}
                   onValueChange={(value) => setComponentForm(prev => ({ ...prev, calculationType: value as CalculationType }))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-muted/30 border-border/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -441,88 +479,93 @@ export default function SalaryStructures() {
             </div>
 
             <div className="space-y-2">
-              <Label>Value ({componentForm.calculationType === 'fixed' ? '₹' : '%'})</Label>
+              <Label className="text-muted-foreground">Value ({componentForm.calculationType === 'fixed' ? '₹' : '%'})</Label>
               <Input
                 type="number"
                 value={componentForm.value}
                 onChange={(e) => setComponentForm(prev => ({ ...prev, value: Number(e.target.value) }))}
+                className="bg-muted/30 border-border/50"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center justify-between">
-                <Label>Taxable</Label>
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                <Label className="text-sm">Taxable</Label>
                 <Switch
                   checked={componentForm.isTaxable}
                   onCheckedChange={(checked) => setComponentForm(prev => ({ ...prev, isTaxable: checked }))}
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <Label>Include in Gross</Label>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                <Label className="text-sm">Include in Gross</Label>
                 <Switch
                   checked={componentForm.includeInGross}
                   onCheckedChange={(checked) => setComponentForm(prev => ({ ...prev, includeInGross: checked }))}
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <Label>Include in PF</Label>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                <Label className="text-sm">Include in PF</Label>
                 <Switch
                   checked={componentForm.includeInPF}
                   onCheckedChange={(checked) => setComponentForm(prev => ({ ...prev, includeInPF: checked }))}
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <Label>Include in ESI</Label>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                <Label className="text-sm">Active</Label>
                 <Switch
-                  checked={componentForm.includeInESI}
-                  onCheckedChange={(checked) => setComponentForm(prev => ({ ...prev, includeInESI: checked }))}
+                  checked={componentForm.isActive}
+                  onCheckedChange={(checked) => setComponentForm(prev => ({ ...prev, isActive: checked }))}
                 />
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="pt-4">
             <Button variant="outline" onClick={() => setIsComponentDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveComponent}>Save Component</Button>
+            <Button onClick={handleSaveComponent} className="shadow-lg shadow-primary/20">Save Component</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Structure Dialog */}
       <Dialog open={isStructureDialogOpen} onOpenChange={setIsStructureDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl glass-card border-border/50">
           <DialogHeader>
-            <DialogTitle>{editingStructure ? 'Edit Structure' : 'Create Salary Structure'}</DialogTitle>
+            <DialogTitle className="text-xl font-bold">{editingStructure ? 'Edit Structure' : 'Create Salary Structure'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Structure Name</Label>
+                <Label className="text-muted-foreground">Structure Name</Label>
                 <Input
                   value={structureForm.name}
                   onChange={(e) => setStructureForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g., Developer L1"
+                  className="bg-muted/30 border-border/50"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Description</Label>
+                <Label className="text-muted-foreground">Description</Label>
                 <Input
                   value={structureForm.description}
                   onChange={(e) => setStructureForm(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Brief description"
+                  className="bg-muted/30 border-border/50"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Add Components from Library</Label>
+              <Label className="text-muted-foreground">Add Component from Library</Label>
               <Select onValueChange={addComponentToStructure}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a component to add" />
+                <SelectTrigger className="bg-muted/30 border-border/50">
+                  <SelectValue placeholder="Select component to add" />
                 </SelectTrigger>
                 <SelectContent>
                   {masterComponents
-                    .filter(c => c.isActive && !(structureForm.components || []).some(sc => sc.componentId === c.id))
-                    .map((component) => (
-                      <SelectItem key={component.id} value={component.id}>
-                        {component.name} ({component.code})
+                    .filter(c => c.isActive && !(structureForm.components || []).find(sc => sc.componentId === c.id))
+                    .map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name} ({c.code})
                       </SelectItem>
                     ))}
                 </SelectContent>
@@ -530,62 +573,46 @@ export default function SalaryStructures() {
             </div>
 
             <div className="space-y-2">
-              <Label>Structure Components</Label>
-              {(structureForm.components || []).length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">
-                  No components added yet. Select from the library above.
-                </p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Component</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Calculation</TableHead>
-                      <TableHead>Value</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(structureForm.components || []).map((comp) => (
-                      <TableRow key={comp.componentId}>
-                        <TableCell>{comp.componentName}</TableCell>
-                        <TableCell>
-                          <Badge variant={comp.type === 'earning' ? 'default' : 'destructive'}>
-                            {comp.type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {comp.calculationType === 'fixed' && 'Fixed'}
-                          {comp.calculationType === 'percentage_of_basic' && '% of Basic'}
-                          {comp.calculationType === 'percentage_of_ctc' && '% of CTC'}
-                        </TableCell>
-                        <TableCell>
-                          {comp.calculationType === 'fixed' ? `₹${comp.value}` : `${comp.value}%`}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeComponentFromStructure(comp.componentId)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+              <Label className="text-muted-foreground">Selected Components</Label>
+              <div className="rounded-xl border border-border/50 p-4 bg-muted/20">
+                {(structureForm.components || []).length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No components added yet</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {(structureForm.components || []).map(comp => (
+                      <Badge
+                        key={comp.componentId}
+                        variant="secondary"
+                        className="gap-1 pr-1 bg-muted/50"
+                      >
+                        {comp.componentName}
+                        <button
+                          onClick={() => removeComponentFromStructure(comp.componentId)}
+                          className="ml-1 hover:bg-destructive/20 rounded p-0.5"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </Badge>
                     ))}
-                  </TableBody>
-                </Table>
-              )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+              <Label>Active</Label>
+              <Switch
+                checked={structureForm.isActive}
+                onCheckedChange={(checked) => setStructureForm(prev => ({ ...prev, isActive: checked }))}
+              />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="pt-4">
             <Button variant="outline" onClick={() => setIsStructureDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveStructure}>Save Structure</Button>
+            <Button onClick={handleSaveStructure} className="shadow-lg shadow-primary/20">Save Structure</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }
