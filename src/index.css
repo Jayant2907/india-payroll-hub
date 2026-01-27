@@ -109,7 +109,7 @@
 @layer components {
   /* Glassmorphism Card */
   .glass-card {
-    @apply rounded-xl border backdrop-blur-xl;
+    @apply rounded-2xl border backdrop-blur-xl;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
     box-shadow: 
@@ -119,16 +119,16 @@
   }
   
   .glass-card-hover {
-    @apply glass-card transition-all duration-300;
+    @apply glass-card transition-all duration-300 cursor-pointer;
   }
   
   .glass-card-hover:hover {
     box-shadow: 
-      0 8px 32px -1px hsl(var(--glass-shadow)),
+      0 12px 40px -4px hsl(var(--glass-shadow)),
       0 0 1px 0 hsl(var(--glass-border)),
       inset 0 1px 0 0 hsl(var(--glass-border)),
-      0 0 20px -5px hsl(var(--primary) / 0.3);
-    transform: translateY(-2px);
+      0 0 24px -8px hsl(var(--primary) / 0.4);
+    transform: translateY(-4px);
   }
   
   /* Bento Grid */
@@ -154,19 +154,19 @@
   
   /* Glow Effects */
   .glow-primary {
-    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 24px -6px hsl(var(--primary) / 0.6);
   }
   
   .glow-success {
-    box-shadow: 0 0 20px -5px hsl(var(--chart-2) / 0.5);
+    box-shadow: 0 0 24px -6px hsl(var(--chart-2) / 0.6);
   }
   
   .glow-warning {
-    box-shadow: 0 0 20px -5px hsl(var(--chart-3) / 0.5);
+    box-shadow: 0 0 24px -6px hsl(var(--chart-3) / 0.6);
   }
   
   .glow-danger {
-    box-shadow: 0 0 20px -5px hsl(var(--destructive) / 0.5);
+    box-shadow: 0 0 24px -6px hsl(var(--destructive) / 0.6);
   }
   
   /* Status Badges */
@@ -188,6 +188,52 @@
     background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--chart-2)));
   }
   
+  /* Premium Tab Styling */
+  .premium-tabs {
+    @apply glass-card p-1.5 w-fit;
+  }
+  
+  .premium-tabs [data-state="active"] {
+    @apply bg-primary text-primary-foreground shadow-lg shadow-primary/20;
+  }
+  
+  /* Animated border */
+  .animated-border {
+    position: relative;
+  }
+  
+  .animated-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--chart-2)), hsl(var(--primary)));
+    background-size: 200% 200%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: shimmer 3s linear infinite;
+  }
+  
+  /* Table enhancements */
+  .premium-table {
+    @apply rounded-xl overflow-hidden;
+  }
+  
+  .premium-table th {
+    @apply bg-muted/30 font-semibold text-foreground/80 uppercase text-xs tracking-wider;
+  }
+  
+  .premium-table tr {
+    @apply transition-colors duration-200;
+  }
+  
+  .premium-table tbody tr:hover {
+    @apply bg-muted/20;
+  }
+  
   /* Scrollbar Styling */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
@@ -204,5 +250,41 @@
   
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/40;
+  }
+  
+  /* Animate in utilities */
+  .animate-in {
+    animation-fill-mode: both;
+  }
+  
+  .fade-in {
+    animation-name: fade-in;
+  }
+  
+  .duration-500 {
+    animation-duration: 500ms;
+  }
+  
+  /* Stagger children animations */
+  .stagger-children > * {
+    animation: slide-in-from-bottom-4 0.4s ease-out both;
+  }
+  
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+  
+  @keyframes slide-in-from-bottom-4 {
+    from { 
+      transform: translateY(16px); 
+      opacity: 0; 
+    }
+    to { 
+      transform: translateY(0); 
+      opacity: 1; 
+    }
   }
 }

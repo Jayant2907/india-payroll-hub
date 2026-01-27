@@ -9,7 +9,8 @@ import {
   CheckCircle2,
   Clock,
   BarChart3,
-  PieChart
+  LayoutDashboard,
+  Sparkles
 } from 'lucide-react';
 import { 
   BentoCard, 
@@ -17,8 +18,8 @@ import {
   BentoCardHeader, 
   BentoCardTitle, 
   BentoCardContent,
-  BentoCardValue 
 } from '@/components/ui/bento-card';
+import { PageHeader, PageContainer, StatsCard } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +39,8 @@ import {
   LineChart,
   Line,
   Legend,
+  Area,
+  AreaChart,
 } from 'recharts';
 
 const CHART_COLORS = [
@@ -151,130 +154,122 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back, {user?.name}. Here's your payroll overview.
-        </p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description={`Welcome back, ${user?.name}. Here's your payroll command center.`}
+        icon={<LayoutDashboard className="h-7 w-7 text-primary" />}
+        badge={
+          <Badge className="bg-primary/20 text-primary border-primary/30 gap-1">
+            <Sparkles className="h-3 w-3" />
+            {new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+          </Badge>
+        }
+      />
 
       <Tabs defaultValue="active" className="space-y-6">
-        <TabsList className="glass-card">
-          <TabsTrigger value="active">Active Payroll</TabsTrigger>
-          <TabsTrigger value="past">Past Payrolls</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        <TabsList className="premium-tabs">
+          <TabsTrigger value="active" className="gap-2 rounded-lg">
+            <Users className="h-4 w-4" />
+            Active Payroll
+          </TabsTrigger>
+          <TabsTrigger value="past" className="gap-2 rounded-lg">
+            <CalendarClock className="h-4 w-4" />
+            Past Payrolls
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2 rounded-lg">
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
         </TabsList>
 
         {/* Active Payroll Tab */}
         <TabsContent value="active" className="space-y-6">
-          <BentoGrid cols={4}>
-            {/* Workforce Strength */}
-            <BentoCard hover>
-              <BentoCardHeader>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
-                  <Users className="h-5 w-5 text-primary" />
-                </div>
-              </BentoCardHeader>
-              <BentoCardContent>
-                <p className="text-sm text-muted-foreground">Workforce Strength</p>
-                <BentoCardValue>{activeEmployees.length}</BentoCardValue>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  +{inactiveEmployees.length} inactive
-                </p>
-              </BentoCardContent>
-            </BentoCard>
-
-            {/* Monthly Payroll */}
-            <BentoCard hover>
-              <BentoCardHeader>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20">
-                  <IndianRupee className="h-5 w-5 text-emerald-400" />
-                </div>
-              </BentoCardHeader>
-              <BentoCardContent>
-                <p className="text-sm text-muted-foreground">Monthly Payroll</p>
-                <BentoCardValue trend="up">{formatLakhs(monthlyPayroll)}</BentoCardValue>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Estimated for this month
-                </p>
-              </BentoCardContent>
-            </BentoCard>
-
-            {/* Annual CTC */}
-            <BentoCard hover>
-              <BentoCardHeader>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/20">
-                  <TrendingUp className="h-5 w-5 text-amber-400" />
-                </div>
-              </BentoCardHeader>
-              <BentoCardContent>
-                <p className="text-sm text-muted-foreground">Annual CTC</p>
-                <BentoCardValue>{formatLakhs(totalAnnualCTC)}</BentoCardValue>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Total company cost
-                </p>
-              </BentoCardContent>
-            </BentoCard>
-
-            {/* Organization */}
-            <BentoCard hover>
-              <BentoCardHeader>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500/20">
-                  <Building2 className="h-5 w-5 text-rose-400" />
-                </div>
-              </BentoCardHeader>
-              <BentoCardContent>
-                <p className="text-sm text-muted-foreground">Organization</p>
-                <BentoCardValue className="text-xl">{companyConfig.tradeName}</BentoCardValue>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {departmentData.length} departments
-                </p>
-              </BentoCardContent>
-            </BentoCard>
+          <BentoGrid cols={4} className="stagger-children">
+            <StatsCard
+              title="Workforce Strength"
+              value={activeEmployees.length}
+              subtitle={`+${inactiveEmployees.length} inactive`}
+              icon={<Users className="h-6 w-6" />}
+              iconColor="bg-primary/20 text-primary"
+            />
+            <StatsCard
+              title="Monthly Payroll"
+              value={formatLakhs(monthlyPayroll)}
+              subtitle="Estimated for this month"
+              icon={<IndianRupee className="h-6 w-6" />}
+              iconColor="bg-emerald-500/20 text-emerald-400"
+              trend="up"
+              trendValue="5.2%"
+            />
+            <StatsCard
+              title="Annual CTC"
+              value={formatLakhs(totalAnnualCTC)}
+              subtitle="Total company cost"
+              icon={<TrendingUp className="h-6 w-6" />}
+              iconColor="bg-amber-500/20 text-amber-400"
+            />
+            <StatsCard
+              title="Organization"
+              value={companyConfig.tradeName}
+              subtitle={`${departmentData.length} departments`}
+              icon={<Building2 className="h-6 w-6" />}
+              iconColor="bg-rose-500/20 text-rose-400"
+            />
           </BentoGrid>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-5">
             {/* Department Distribution Chart */}
-            <BentoCard size="lg">
+            <BentoCard size="lg" className="lg:col-span-3">
               <BentoCardHeader>
                 <BentoCardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-primary" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20">
+                    <BarChart3 className="h-4 w-4 text-primary" />
+                  </div>
                   Department Distribution
                 </BentoCardTitle>
               </BentoCardHeader>
-              <BentoCardContent className="h-64">
+              <BentoCardContent className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={departmentData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <defs>
+                      <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(262, 80%, 65%)" stopOpacity={1} />
+                        <stop offset="100%" stopColor="hsl(262, 80%, 45%)" stopOpacity={0.8} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                     <XAxis 
                       dataKey="name" 
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      fontSize={12}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      axisLine={{ stroke: 'hsl(var(--border))' }}
                     />
                     <YAxis 
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      fontSize={12}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      axisLine={{ stroke: 'hsl(var(--border))' }}
                     />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 40px -10px hsl(var(--glass-shadow))',
                       }}
                     />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="value" fill="url(#barGradient)" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </BentoCardContent>
             </BentoCard>
 
             {/* Compliance Calendar */}
-            <BentoCard>
+            <BentoCard className="lg:col-span-2">
               <BentoCardHeader>
                 <BentoCardTitle className="flex items-center gap-2">
-                  <CalendarClock className="h-5 w-5 text-primary" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20">
+                    <CalendarClock className="h-4 w-4 text-amber-400" />
+                  </div>
                   Compliance Calendar
                 </BentoCardTitle>
               </BentoCardHeader>
@@ -283,37 +278,36 @@ export default function Dashboard() {
                   {complianceDeadlines.map((deadline, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3"
+                      className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/20 p-4 transition-all hover:bg-muted/40"
                     >
                       <div className="flex items-center gap-3">
-                        {deadline.status === 'overdue' && (
-                          <AlertTriangle className="h-4 w-4 text-destructive" />
-                        )}
-                        {deadline.status === 'due-today' && (
-                          <Clock className="h-4 w-4 text-amber-400" />
-                        )}
-                        {deadline.status === 'upcoming' && (
-                          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                        )}
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                          deadline.status === 'overdue' ? 'bg-destructive/20' :
+                          deadline.status === 'due-today' ? 'bg-amber-500/20' : 'bg-emerald-500/20'
+                        }`}>
+                          {deadline.status === 'overdue' && (
+                            <AlertTriangle className="h-5 w-5 text-destructive" />
+                          )}
+                          {deadline.status === 'due-today' && (
+                            <Clock className="h-5 w-5 text-amber-400" />
+                          )}
+                          {deadline.status === 'upcoming' && (
+                            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                          )}
+                        </div>
                         <div>
-                          <p className="text-sm font-medium">{deadline.name}</p>
+                          <p className="font-medium text-foreground">{deadline.name}</p>
                           <p className="text-xs text-muted-foreground">{deadline.date}</p>
                         </div>
                       </div>
                       <Badge
-                        variant={
-                          deadline.status === 'overdue'
-                            ? 'destructive'
-                            : deadline.status === 'due-today'
-                            ? 'secondary'
-                            : 'outline'
-                        }
+                        variant="outline"
                         className={
-                          deadline.status === 'due-today'
-                            ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                            : deadline.status === 'upcoming'
-                            ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                            : ''
+                          deadline.status === 'overdue'
+                            ? 'status-inactive'
+                            : deadline.status === 'due-today'
+                            ? 'status-pending'
+                            : 'status-active'
                         }
                       >
                         {deadline.status === 'overdue' && 'Overdue'}
@@ -332,7 +326,12 @@ export default function Dashboard() {
         <TabsContent value="past" className="space-y-6">
           <BentoCard>
             <BentoCardHeader>
-              <BentoCardTitle>Historical Payroll Data</BentoCardTitle>
+              <BentoCardTitle className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20">
+                  <CalendarClock className="h-4 w-4 text-primary" />
+                </div>
+                Historical Payroll Data
+              </BentoCardTitle>
               <Select value={selectedPayrollPeriod} onValueChange={setSelectedPayrollPeriod}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Select period" />
@@ -355,32 +354,42 @@ export default function Dashboard() {
             </BentoCardHeader>
             <BentoCardContent>
               {payrollRuns.length === 0 ? (
-                <div className="flex h-48 flex-col items-center justify-center text-center">
-                  <PieChart className="mb-4 h-12 w-12 text-muted-foreground/50" />
-                  <p className="text-muted-foreground">No payrolls have been processed yet.</p>
-                  <p className="text-sm text-muted-foreground/70">
+                <div className="flex h-64 flex-col items-center justify-center text-center">
+                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted/50">
+                    <CalendarClock className="h-10 w-10 text-muted-foreground/50" />
+                  </div>
+                  <p className="text-lg font-medium text-foreground">No payrolls processed yet</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     Process your first payroll to see historical data here.
                   </p>
                 </div>
               ) : (
-                <div className="grid gap-4 md:grid-cols-4">
-                  <BentoCard className="bg-muted/30">
-                    <p className="text-sm text-muted-foreground">Gross Payroll</p>
-                    <BentoCardValue className="text-xl">₹0</BentoCardValue>
-                  </BentoCard>
-                  <BentoCard className="bg-muted/30">
-                    <p className="text-sm text-muted-foreground">Deductions</p>
-                    <BentoCardValue className="text-xl">₹0</BentoCardValue>
-                  </BentoCard>
-                  <BentoCard className="bg-muted/30">
-                    <p className="text-sm text-muted-foreground">Income Tax</p>
-                    <BentoCardValue className="text-xl">₹0</BentoCardValue>
-                  </BentoCard>
-                  <BentoCard className="bg-muted/30">
-                    <p className="text-sm text-muted-foreground">Net Payout</p>
-                    <BentoCardValue className="text-xl text-emerald-400">₹0</BentoCardValue>
-                  </BentoCard>
-                </div>
+                <BentoGrid cols={4}>
+                  <StatsCard
+                    title="Gross Payroll"
+                    value="₹0"
+                    icon={<IndianRupee className="h-5 w-5" />}
+                    iconColor="bg-primary/20 text-primary"
+                  />
+                  <StatsCard
+                    title="Deductions"
+                    value="₹0"
+                    icon={<TrendingUp className="h-5 w-5" />}
+                    iconColor="bg-rose-500/20 text-rose-400"
+                  />
+                  <StatsCard
+                    title="Income Tax"
+                    value="₹0"
+                    icon={<Building2 className="h-5 w-5" />}
+                    iconColor="bg-amber-500/20 text-amber-400"
+                  />
+                  <StatsCard
+                    title="Net Payout"
+                    value="₹0"
+                    icon={<CheckCircle2 className="h-5 w-5" />}
+                    iconColor="bg-emerald-500/20 text-emerald-400"
+                  />
+                </BentoGrid>
               )}
             </BentoCardContent>
           </BentoCard>
@@ -392,34 +401,42 @@ export default function Dashboard() {
             {/* Cost vs Headcount Trend */}
             <BentoCard size="lg">
               <BentoCardHeader>
-                <BentoCardTitle>Cost vs Headcount Trend</BentoCardTitle>
+                <BentoCardTitle className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                  </div>
+                  Cost vs Headcount Trend
+                </BentoCardTitle>
               </BentoCardHeader>
-              <BentoCardContent className="h-72">
+              <BentoCardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <AreaChart data={trendData}>
+                    <defs>
+                      <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(262, 80%, 65%)" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="hsl(262, 80%, 65%)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                     <XAxis 
                       dataKey="month" 
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      fontSize={12}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                     />
                     <YAxis 
                       yAxisId="left"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      fontSize={12}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                       tickFormatter={(value) => `₹${(value / 100000).toFixed(0)}L`}
                     />
                     <YAxis 
                       yAxisId="right" 
                       orientation="right"
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                      fontSize={12}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                     />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
+                        borderRadius: '12px',
                       }}
                       formatter={(value: number, name: string) => [
                         name === 'cost' ? formatCurrency(value) : value,
@@ -427,13 +444,13 @@ export default function Dashboard() {
                       ]}
                     />
                     <Legend />
-                    <Line 
+                    <Area 
                       yAxisId="left"
                       type="monotone" 
                       dataKey="cost" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth={2}
-                      dot={{ fill: 'hsl(var(--primary))' }}
+                      stroke="hsl(262, 80%, 65%)" 
+                      strokeWidth={3}
+                      fill="url(#costGradient)"
                       name="cost"
                     />
                     <Line 
@@ -441,11 +458,11 @@ export default function Dashboard() {
                       type="monotone" 
                       dataKey="headcount" 
                       stroke="hsl(173, 80%, 50%)" 
-                      strokeWidth={2}
-                      dot={{ fill: 'hsl(173, 80%, 50%)' }}
+                      strokeWidth={3}
+                      dot={{ fill: 'hsl(173, 80%, 50%)', strokeWidth: 2, r: 5 }}
                       name="headcount"
                     />
-                  </LineChart>
+                  </AreaChart>
                 </ResponsiveContainer>
               </BentoCardContent>
             </BentoCard>
@@ -453,9 +470,14 @@ export default function Dashboard() {
             {/* Department Pie Chart */}
             <BentoCard>
               <BentoCardHeader>
-                <BentoCardTitle>Headcount by Department</BentoCardTitle>
+                <BentoCardTitle className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20">
+                    <Users className="h-4 w-4 text-emerald-400" />
+                  </div>
+                  Headcount by Department
+                </BentoCardTitle>
               </BentoCardHeader>
-              <BentoCardContent className="h-72">
+              <BentoCardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartsPie>
                     <Pie
@@ -463,21 +485,28 @@ export default function Dashboard() {
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={5}
+                      outerRadius={100}
+                      paddingAngle={4}
                       dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
                       {departmentData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={CHART_COLORS[index % CHART_COLORS.length]} 
+                          stroke="none"
+                        />
                       ))}
                     </Pie>
                     <Tooltip
                       contentStyle={{
                         backgroundColor: 'hsl(var(--card))',
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
+                        borderRadius: '12px',
                       }}
+                    />
+                    <Legend 
+                      wrapperStyle={{ fontSize: '12px' }}
+                      formatter={(value) => <span className="text-muted-foreground">{value}</span>}
                     />
                   </RechartsPie>
                 </ResponsiveContainer>
@@ -486,6 +515,6 @@ export default function Dashboard() {
           </BentoGrid>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Calculator, IndianRupee, FileText, Save } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calculator, IndianRupee, FileText, Save, Shield } from 'lucide-react';
 import { BentoCard, BentoCardHeader, BentoCardTitle, BentoCardContent } from '@/components/ui/bento-card';
+import { PageHeader, PageContainer } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { getPTSlabs, setPTSlabs, getPFSettings, setPFSettings, getTaxSettings, setTaxSettings } from '@/lib/storage';
 import type { PTSlab, PFSettings, TaxSettings, TaxSlab, TaxRegime } from '@/types/payroll';
 import { useToast } from '@/hooks/use-toast';
@@ -175,26 +181,29 @@ export default function Statutory() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Statutory Compliance</h1>
-        <p className="text-muted-foreground">
-          Configure Professional Tax, Provident Fund, and Income Tax settings
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Statutory Compliance"
+        description="Configure Professional Tax, Provident Fund, and Income Tax settings"
+        icon={<Shield className="h-7 w-7 text-primary" />}
+        badge={
+          <Badge className="status-active">
+            FY {taxSettings.fiscalYear}
+          </Badge>
+        }
+      />
 
       <Tabs defaultValue="pt" className="space-y-6">
-        <TabsList className="glass-card">
-          <TabsTrigger value="pt" className="gap-2">
+        <TabsList className="premium-tabs">
+          <TabsTrigger value="pt" className="gap-2 rounded-lg">
             <Calculator className="h-4 w-4" />
             Professional Tax
           </TabsTrigger>
-          <TabsTrigger value="pf" className="gap-2">
+          <TabsTrigger value="pf" className="gap-2 rounded-lg">
             <IndianRupee className="h-4 w-4" />
             Provident Fund
           </TabsTrigger>
-          <TabsTrigger value="tax" className="gap-2">
+          <TabsTrigger value="tax" className="gap-2 rounded-lg">
             <FileText className="h-4 w-4" />
             Income Tax
           </TabsTrigger>
@@ -204,16 +213,21 @@ export default function Statutory() {
         <TabsContent value="pt">
           <BentoCard>
             <BentoCardHeader>
-              <BentoCardTitle>Professional Tax Slabs</BentoCardTitle>
-              <Button onClick={() => { setPTForm({ state: '', minSalary: 0, maxSalary: 0, taxAmount: 0 }); setIsPTDialogOpen(true); }} className="gap-2">
+              <BentoCardTitle className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20">
+                  <Calculator className="h-4 w-4 text-primary" />
+                </div>
+                Professional Tax Slabs
+              </BentoCardTitle>
+              <Button onClick={() => { setPTForm({ state: '', minSalary: 0, maxSalary: 0, taxAmount: 0 }); setIsPTDialogOpen(true); }} className="gap-2 shadow-lg shadow-primary/20">
                 <Plus className="h-4 w-4" />
                 Add Slab
               </Button>
             </BentoCardHeader>
             <BentoCardContent>
-              <Table>
+              <Table className="premium-table">
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="border-border/50">
                     <TableHead>State</TableHead>
                     <TableHead>Min Salary</TableHead>
                     <TableHead>Max Salary</TableHead>
@@ -223,32 +237,47 @@ export default function Statutory() {
                 </TableHeader>
                 <TableBody>
                   {ptSlabs.map((slab) => (
-                    <TableRow key={slab.id}>
+                    <TableRow key={slab.id} className="border-border/30 group">
                       <TableCell className="font-medium">{slab.state}</TableCell>
                       <TableCell>{formatCurrency(slab.minSalary)}</TableCell>
                       <TableCell>{slab.maxSalary >= 99999999 ? '∞' : formatCurrency(slab.maxSalary)}</TableCell>
-                      <TableCell>{formatCurrency(slab.taxAmount)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="bg-muted/50">
+                          {formatCurrency(slab.taxAmount)}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setEditingPTSlab(slab);
-                              setPTForm(slab);
-                              setIsPTDialogOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeletePTSlab(slab.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setEditingPTSlab(slab);
+                                  setPTForm(slab);
+                                  setIsPTDialogOpen(true);
+                                }}
+                                className="h-8 w-8"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Edit</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeletePTSlab(slab.id)}
+                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete</TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -263,15 +292,25 @@ export default function Statutory() {
         <TabsContent value="pf">
           <BentoCard>
             <BentoCardHeader>
-              <BentoCardTitle>Provident Fund Configuration</BentoCardTitle>
+              <BentoCardTitle className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20">
+                  <IndianRupee className="h-4 w-4 text-emerald-400" />
+                </div>
+                Provident Fund Configuration
+              </BentoCardTitle>
             </BentoCardHeader>
             <BentoCardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
-                <div>
-                  <p className="font-medium">Enable Provident Fund</p>
-                  <p className="text-sm text-muted-foreground">
-                    Automatically calculate PF deductions for eligible employees
-                  </p>
+              <div className="flex items-center justify-between p-6 rounded-xl bg-muted/30 border border-border/50">
+                <div className="flex items-center gap-4">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${pfSettings.enabled ? 'bg-emerald-500/20' : 'bg-muted/50'}`}>
+                    <IndianRupee className={`h-6 w-6 ${pfSettings.enabled ? 'text-emerald-400' : 'text-muted-foreground'}`} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">Enable Provident Fund</p>
+                    <p className="text-sm text-muted-foreground">
+                      Automatically calculate PF deductions for eligible employees
+                    </p>
+                  </div>
                 </div>
                 <Switch
                   checked={pfSettings.enabled}
@@ -279,32 +318,35 @@ export default function Statutory() {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label>Employee Contribution (%)</Label>
+                  <Label className="text-muted-foreground">Employee Contribution (%)</Label>
                   <Input
                     type="number"
                     value={pfSettings.employeeContribution}
                     onChange={(e) => setPFSettingsState(prev => ({ ...prev, employeeContribution: Number(e.target.value) }))}
                     disabled={!pfSettings.enabled}
+                    className="bg-muted/30 border-border/50"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Employer Contribution (%)</Label>
+                  <Label className="text-muted-foreground">Employer Contribution (%)</Label>
                   <Input
                     type="number"
                     value={pfSettings.employerContribution}
                     onChange={(e) => setPFSettingsState(prev => ({ ...prev, employerContribution: Number(e.target.value) }))}
                     disabled={!pfSettings.enabled}
+                    className="bg-muted/30 border-border/50"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Wage Ceiling (₹)</Label>
+                  <Label className="text-muted-foreground">Wage Ceiling (₹)</Label>
                   <Input
                     type="number"
                     value={pfSettings.wageCeiling}
                     onChange={(e) => setPFSettingsState(prev => ({ ...prev, wageCeiling: Number(e.target.value) }))}
                     disabled={!pfSettings.enabled}
+                    className="bg-muted/30 border-border/50"
                   />
                   <p className="text-xs text-muted-foreground">
                     PF calculated on minimum of Basic or this ceiling
@@ -312,8 +354,8 @@ export default function Statutory() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <Button onClick={handleSavePFSettings} className="gap-2">
+              <div className="flex justify-end pt-4 border-t border-border/50">
+                <Button onClick={handleSavePFSettings} className="gap-2 shadow-lg shadow-primary/20">
                   <Save className="h-4 w-4" />
                   Save PF Settings
                 </Button>
@@ -328,41 +370,49 @@ export default function Statutory() {
             {/* Exemptions Card */}
             <BentoCard>
               <BentoCardHeader>
-                <BentoCardTitle>Exemptions & Deductions</BentoCardTitle>
+                <BentoCardTitle className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20">
+                    <FileText className="h-4 w-4 text-amber-400" />
+                  </div>
+                  Exemptions & Deductions
+                </BentoCardTitle>
               </BentoCardHeader>
-              <BentoCardContent className="space-y-4">
-                <div className="grid grid-cols-4 gap-4">
+              <BentoCardContent className="space-y-6">
+                <div className="grid grid-cols-4 gap-6">
                   <div className="space-y-2">
-                    <Label>Fiscal Year</Label>
-                    <Input value={taxSettings.fiscalYear} disabled className="bg-muted" />
+                    <Label className="text-muted-foreground">Fiscal Year</Label>
+                    <Input value={taxSettings.fiscalYear} disabled className="bg-muted/50 border-border/50 font-mono" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Standard Deduction (₹)</Label>
+                    <Label className="text-muted-foreground">Standard Deduction (₹)</Label>
                     <Input
                       type="number"
                       value={taxSettings.standardDeduction}
                       onChange={(e) => setTaxSettingsState(prev => ({ ...prev, standardDeduction: Number(e.target.value) }))}
+                      className="bg-muted/30 border-border/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Section 80C Limit (₹)</Label>
+                    <Label className="text-muted-foreground">Section 80C Limit (₹)</Label>
                     <Input
                       type="number"
                       value={taxSettings.section80CLimit}
                       onChange={(e) => setTaxSettingsState(prev => ({ ...prev, section80CLimit: Number(e.target.value) }))}
+                      className="bg-muted/30 border-border/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>HRA Exemption Limit (₹)</Label>
+                    <Label className="text-muted-foreground">HRA Exemption Limit (₹)</Label>
                     <Input
                       type="number"
                       value={taxSettings.hraExemptionLimit}
                       onChange={(e) => setTaxSettingsState(prev => ({ ...prev, hraExemptionLimit: Number(e.target.value) }))}
+                      className="bg-muted/30 border-border/50"
                     />
                   </div>
                 </div>
-                <div className="flex justify-end">
-                  <Button onClick={handleSaveTaxSettings} className="gap-2">
+                <div className="flex justify-end pt-4 border-t border-border/50">
+                  <Button onClick={handleSaveTaxSettings} className="gap-2 shadow-lg shadow-primary/20">
                     <Save className="h-4 w-4" />
                     Save Tax Settings
                   </Button>
@@ -374,9 +424,14 @@ export default function Statutory() {
             <BentoCard>
               <BentoCardHeader>
                 <div className="flex items-center gap-4">
-                  <BentoCardTitle>Tax Slabs</BentoCardTitle>
+                  <BentoCardTitle className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/20">
+                      <Calculator className="h-4 w-4 text-rose-400" />
+                    </div>
+                    Tax Slabs
+                  </BentoCardTitle>
                   <Select value={selectedTaxRegime} onValueChange={(v) => setSelectedTaxRegime(v as TaxRegime)}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-40 bg-muted/30 border-border/50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -385,15 +440,15 @@ export default function Statutory() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={() => { setTaxSlabForm({ regime: selectedTaxRegime, fiscalYear: taxSettings.fiscalYear, minIncome: 0, maxIncome: 0, taxRate: 0 }); setIsTaxSlabDialogOpen(true); }} className="gap-2">
+                <Button onClick={() => { setTaxSlabForm({ regime: selectedTaxRegime, fiscalYear: taxSettings.fiscalYear, minIncome: 0, maxIncome: 0, taxRate: 0 }); setIsTaxSlabDialogOpen(true); }} className="gap-2 shadow-lg shadow-primary/20">
                   <Plus className="h-4 w-4" />
                   Add Slab
                 </Button>
               </BentoCardHeader>
               <BentoCardContent>
-                <Table>
+                <Table className="premium-table">
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="border-border/50">
                       <TableHead>Min Income</TableHead>
                       <TableHead>Max Income</TableHead>
                       <TableHead>Tax Rate</TableHead>
@@ -402,33 +457,46 @@ export default function Statutory() {
                   </TableHeader>
                   <TableBody>
                     {filteredTaxSlabs.map((slab) => (
-                      <TableRow key={slab.id}>
+                      <TableRow key={slab.id} className="border-border/30 group">
                         <TableCell>{formatCurrency(slab.minIncome)}</TableCell>
                         <TableCell>{slab.maxIncome >= 99999999 ? '∞' : formatCurrency(slab.maxIncome)}</TableCell>
                         <TableCell>
-                          <Badge variant="secondary">{slab.taxRate}%</Badge>
+                          <Badge variant="secondary" className="bg-muted/50 font-mono">
+                            {slab.taxRate}%
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                setEditingTaxSlab(slab);
-                                setTaxSlabForm(slab);
-                                setIsTaxSlabDialogOpen(true);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteTaxSlab(slab.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                          <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setEditingTaxSlab(slab);
+                                    setTaxSlabForm(slab);
+                                    setIsTaxSlabDialogOpen(true);
+                                  }}
+                                  className="h-8 w-8"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Edit</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDeleteTaxSlab(slab.id)}
+                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Delete</TooltipContent>
+                            </Tooltip>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -443,19 +511,19 @@ export default function Statutory() {
 
       {/* PT Dialog */}
       <Dialog open={isPTDialogOpen} onOpenChange={setIsPTDialogOpen}>
-        <DialogContent>
+        <DialogContent className="glass-card border-border/50">
           <DialogHeader>
-            <DialogTitle>{editingPTSlab ? 'Edit PT Slab' : 'Add PT Slab'}</DialogTitle>
+            <DialogTitle className="text-xl font-bold">{editingPTSlab ? 'Edit PT Slab' : 'Add PT Slab'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>State</Label>
+              <Label className="text-muted-foreground">State</Label>
               <Select value={ptForm.state} onValueChange={(v) => setPTForm(prev => ({ ...prev, state: v }))}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-muted/30 border-border/50">
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent>
-                  {INDIAN_STATES.map((state) => (
+                  {INDIAN_STATES.map(state => (
                     <SelectItem key={state} value={state}>{state}</SelectItem>
                   ))}
                 </SelectContent>
@@ -463,50 +531,53 @@ export default function Statutory() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Min Salary (₹)</Label>
+                <Label className="text-muted-foreground">Min Salary (₹)</Label>
                 <Input
                   type="number"
                   value={ptForm.minSalary}
                   onChange={(e) => setPTForm(prev => ({ ...prev, minSalary: Number(e.target.value) }))}
+                  className="bg-muted/30 border-border/50"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Max Salary (₹)</Label>
+                <Label className="text-muted-foreground">Max Salary (₹)</Label>
                 <Input
                   type="number"
                   value={ptForm.maxSalary}
                   onChange={(e) => setPTForm(prev => ({ ...prev, maxSalary: Number(e.target.value) }))}
+                  className="bg-muted/30 border-border/50"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Tax Amount (₹)</Label>
+              <Label className="text-muted-foreground">Tax Amount (₹)</Label>
               <Input
                 type="number"
                 value={ptForm.taxAmount}
                 onChange={(e) => setPTForm(prev => ({ ...prev, taxAmount: Number(e.target.value) }))}
+                className="bg-muted/30 border-border/50"
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="pt-4">
             <Button variant="outline" onClick={() => setIsPTDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSavePTSlab}>Save</Button>
+            <Button onClick={handleSavePTSlab} className="shadow-lg shadow-primary/20">Save Slab</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Tax Slab Dialog */}
       <Dialog open={isTaxSlabDialogOpen} onOpenChange={setIsTaxSlabDialogOpen}>
-        <DialogContent>
+        <DialogContent className="glass-card border-border/50">
           <DialogHeader>
-            <DialogTitle>{editingTaxSlab ? 'Edit Tax Slab' : 'Add Tax Slab'}</DialogTitle>
+            <DialogTitle className="text-xl font-bold">{editingTaxSlab ? 'Edit Tax Slab' : 'Add Tax Slab'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Regime</Label>
+                <Label className="text-muted-foreground">Regime</Label>
                 <Select value={taxSlabForm.regime} onValueChange={(v) => setTaxSlabForm(prev => ({ ...prev, regime: v as TaxRegime }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-muted/30 border-border/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -516,43 +587,46 @@ export default function Statutory() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Fiscal Year</Label>
-                <Input value={taxSlabForm.fiscalYear} disabled className="bg-muted" />
+                <Label className="text-muted-foreground">Fiscal Year</Label>
+                <Input value={taxSlabForm.fiscalYear} disabled className="bg-muted/50 border-border/50" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Min Income (₹)</Label>
+                <Label className="text-muted-foreground">Min Income (₹)</Label>
                 <Input
                   type="number"
                   value={taxSlabForm.minIncome}
                   onChange={(e) => setTaxSlabForm(prev => ({ ...prev, minIncome: Number(e.target.value) }))}
+                  className="bg-muted/30 border-border/50"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Max Income (₹)</Label>
+                <Label className="text-muted-foreground">Max Income (₹)</Label>
                 <Input
                   type="number"
                   value={taxSlabForm.maxIncome}
                   onChange={(e) => setTaxSlabForm(prev => ({ ...prev, maxIncome: Number(e.target.value) }))}
+                  className="bg-muted/30 border-border/50"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Tax Rate (%)</Label>
+              <Label className="text-muted-foreground">Tax Rate (%)</Label>
               <Input
                 type="number"
                 value={taxSlabForm.taxRate}
                 onChange={(e) => setTaxSlabForm(prev => ({ ...prev, taxRate: Number(e.target.value) }))}
+                className="bg-muted/30 border-border/50"
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="pt-4">
             <Button variant="outline" onClick={() => setIsTaxSlabDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveTaxSlab}>Save</Button>
+            <Button onClick={handleSaveTaxSlab} className="shadow-lg shadow-primary/20">Save Slab</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }
