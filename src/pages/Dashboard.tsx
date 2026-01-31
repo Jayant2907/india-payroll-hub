@@ -1,29 +1,32 @@
 import { useState, useMemo } from 'react';
-import { 
-  Users, 
-  IndianRupee, 
-  TrendingUp, 
-  Building2, 
+import {
+  Users,
+  IndianRupee,
+  TrendingUp,
+  Building2,
   CalendarClock,
   AlertTriangle,
   CheckCircle2,
   Clock,
   BarChart3,
   LayoutDashboard,
-  Sparkles
+  Sparkles,
+  RefreshCw,
+  Database
 } from 'lucide-react';
-import { 
-  BentoCard, 
-  BentoGrid, 
-  BentoCardHeader, 
-  BentoCardTitle, 
+import { Button } from '@/components/ui/button';
+import {
+  BentoCard,
+  BentoGrid,
+  BentoCardHeader,
+  BentoCardTitle,
   BentoCardContent,
 } from '@/components/ui/bento-card';
 import { PageHeader, PageContainer, StatsCard } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { getEmployees, getPayrollRuns, getCompanyConfig } from '@/lib/storage';
+import { getEmployees, getPayrollRuns, getCompanyConfig, forceResetDemoData } from '@/lib/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   BarChart,
@@ -42,6 +45,8 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
+import { motion } from 'framer-motion';
+
 
 const CHART_COLORS = [
   'hsl(262, 80%, 65%)',
@@ -59,27 +64,27 @@ const getComplianceDeadlines = () => {
   const currentDay = now.getDate();
 
   const deadlines = [
-    { 
-      name: 'TDS Payment', 
-      day: 7, 
+    {
+      name: 'TDS Payment',
+      day: 7,
       description: 'Monthly TDS deposit for salaries',
       type: 'tax'
     },
-    { 
-      name: 'PF Payment', 
-      day: 15, 
+    {
+      name: 'PF Payment',
+      day: 15,
       description: 'Monthly PF contribution',
       type: 'pf'
     },
-    { 
-      name: 'ESI Payment', 
-      day: 15, 
+    {
+      name: 'ESI Payment',
+      day: 15,
       description: 'Monthly ESI contribution',
       type: 'esi'
     },
-    { 
-      name: 'PT Payment', 
-      day: 20, 
+    {
+      name: 'PT Payment',
+      day: 20,
       description: 'Professional Tax deposit',
       type: 'pt'
     },
@@ -88,7 +93,7 @@ const getComplianceDeadlines = () => {
   return deadlines.map(d => {
     const deadlineDate = new Date(currentYear, currentMonth, d.day);
     let status: 'overdue' | 'due-today' | 'upcoming';
-    
+
     if (currentDay > d.day) {
       status = 'overdue';
     } else if (currentDay === d.day) {
@@ -108,7 +113,7 @@ const getComplianceDeadlines = () => {
 export default function Dashboard() {
   const { user } = useAuth();
   const [selectedPayrollPeriod, setSelectedPayrollPeriod] = useState<string>('');
-  
+
   const employees = useMemo(() => getEmployees(), []);
   const payrollRuns = useMemo(() => getPayrollRuns(), []);
   const companyConfig = useMemo(() => getCompanyConfig(), []);
@@ -141,7 +146,7 @@ export default function Dashboard() {
 
   const formatLakhs = (value: number) => {
     const lakhs = value / 100000;
-    return `₹${lakhs.toFixed(1)}L`;
+    return `₹${lakhs.toFixed(1)} L`;
   };
 
   // Mock trend data for analytics
@@ -160,6 +165,17 @@ export default function Dashboard() {
         title="Dashboard"
         description={`Welcome back, ${user?.name}. Here's your payroll command center.`}
         icon={<LayoutDashboard className="h-7 w-7 text-primary" />}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary"
+            onClick={forceResetDemoData}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh Demo Data
+          </Button>
+        }
         badge={
           <Badge className="bg-primary/20 text-primary border-primary/30 gap-1">
             <Sparkles className="h-3 w-3" />
@@ -168,7 +184,7 @@ export default function Dashboard() {
         }
       />
 
-      <Tabs defaultValue="active" className="space-y-6">
+      < Tabs defaultValue="active" className="space-y-6" >
         <TabsList className="premium-tabs">
           <TabsTrigger value="active" className="gap-2 rounded-lg">
             <Users className="h-4 w-4" />
@@ -240,12 +256,12 @@ export default function Dashboard() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                    <XAxis 
-                      dataKey="name" 
+                    <XAxis
+                      dataKey="name"
                       tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                       axisLine={{ stroke: 'hsl(var(--border))' }}
                     />
-                    <YAxis 
+                    <YAxis
                       tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                       axisLine={{ stroke: 'hsl(var(--border))' }}
                     />
@@ -263,60 +279,64 @@ export default function Dashboard() {
               </BentoCardContent>
             </BentoCard>
 
-            {/* Compliance Calendar */}
-            <BentoCard className="lg:col-span-2">
+            {/* Interactive Compliance Timeline */}
+            <BentoCard className="lg:col-span-2 overflow-hidden relative">
               <BentoCardHeader>
                 <BentoCardTitle className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20">
-                    <CalendarClock className="h-4 w-4 text-amber-400" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20">
+                    <CalendarClock className="h-4 w-4 text-emerald-400" />
                   </div>
-                  Compliance Calendar
+                  Compliance Timeline
                 </BentoCardTitle>
               </BentoCardHeader>
-              <BentoCardContent>
-                <div className="space-y-3">
+              <BentoCardContent className="relative">
+                {/* Vertical Line */}
+                <div className="absolute left-[35px] top-6 bottom-6 w-0.5 bg-border/40" />
+
+                <div className="space-y-6 relative">
                   {complianceDeadlines.map((deadline, index) => (
-                    <div
+                    <motion.div
                       key={index}
-                      className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/20 p-4 transition-all hover:bg-muted/40"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex items-start gap-4"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                          deadline.status === 'overdue' ? 'bg-destructive/20' :
-                          deadline.status === 'due-today' ? 'bg-amber-500/20' : 'bg-emerald-500/20'
+                      <div className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 bg-background ${deadline.status === 'overdue' ? 'border-rose-500' :
+                        deadline.status === 'due-today' ? 'border-amber-500' : 'border-emerald-500'
                         }`}>
-                          {deadline.status === 'overdue' && (
-                            <AlertTriangle className="h-5 w-5 text-destructive" />
-                          )}
-                          {deadline.status === 'due-today' && (
-                            <Clock className="h-5 w-5 text-amber-400" />
-                          )}
-                          {deadline.status === 'upcoming' && (
-                            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{deadline.name}</p>
-                          <p className="text-xs text-muted-foreground">{deadline.date}</p>
-                        </div>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={
-                          deadline.status === 'overdue'
-                            ? 'status-inactive'
-                            : deadline.status === 'due-today'
-                            ? 'status-pending'
-                            : 'status-active'
+                        {deadline.status === 'overdue' ?
+                          <AlertTriangle className="h-4 w-4 text-rose-500" /> :
+                          <div className={`h-2 w-2 rounded-full ${deadline.status === 'due-today' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
+                            }`} />
                         }
-                      >
-                        {deadline.status === 'overdue' && 'Overdue'}
-                        {deadline.status === 'due-today' && 'Due Today'}
-                        {deadline.status === 'upcoming' && 'Upcoming'}
-                      </Badge>
-                    </div>
+                      </div>
+                      <div className="flex-1 pt-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-sm font-bold">{deadline.name}</p>
+                          <Badge variant="ghost" className="text-[10px] h-5 px-1.5 opacity-60">
+                            {deadline.date}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {deadline.description}
+                        </p>
+                        {deadline.status === 'upcoming' && (
+                          <div className="mt-2 h-1 w-full bg-muted/30 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${(new Date().getDate() / deadline.day) * 100}%` }}
+                              className="h-full bg-emerald-500/40"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
+
+                {/* Visual Glow */}
+                <div className="absolute -bottom-10 -right-10 h-32 w-32 bg-primary/5 blur-3xl rounded-full" />
               </BentoCardContent>
             </BentoCard>
           </div>
@@ -342,9 +362,9 @@ export default function Dashboard() {
                   ) : (
                     payrollRuns.map(run => (
                       <SelectItem key={run.id} value={run.id}>
-                        {new Date(run.year, run.month - 1).toLocaleDateString('en-IN', { 
-                          month: 'long', 
-                          year: 'numeric' 
+                        {new Date(run.year, run.month - 1).toLocaleDateString('en-IN', {
+                          month: 'long',
+                          year: 'numeric'
                         })}
                       </SelectItem>
                     ))
@@ -418,17 +438,17 @@ export default function Dashboard() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                    <XAxis 
-                      dataKey="month" 
+                    <XAxis
+                      dataKey="month"
                       tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                     />
-                    <YAxis 
+                    <YAxis
                       yAxisId="left"
                       tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                       tickFormatter={(value) => `₹${(value / 100000).toFixed(0)}L`}
                     />
-                    <YAxis 
-                      yAxisId="right" 
+                    <YAxis
+                      yAxisId="right"
                       orientation="right"
                       tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                     />
@@ -444,20 +464,20 @@ export default function Dashboard() {
                       ]}
                     />
                     <Legend />
-                    <Area 
+                    <Area
                       yAxisId="left"
-                      type="monotone" 
-                      dataKey="cost" 
-                      stroke="hsl(262, 80%, 65%)" 
+                      type="monotone"
+                      dataKey="cost"
+                      stroke="hsl(262, 80%, 65%)"
                       strokeWidth={3}
                       fill="url(#costGradient)"
                       name="cost"
                     />
-                    <Line 
+                    <Line
                       yAxisId="right"
-                      type="monotone" 
-                      dataKey="headcount" 
-                      stroke="hsl(173, 80%, 50%)" 
+                      type="monotone"
+                      dataKey="headcount"
+                      stroke="hsl(173, 80%, 50%)"
                       strokeWidth={3}
                       dot={{ fill: 'hsl(173, 80%, 50%)', strokeWidth: 2, r: 5 }}
                       name="headcount"
@@ -490,9 +510,9 @@ export default function Dashboard() {
                       dataKey="value"
                     >
                       {departmentData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={CHART_COLORS[index % CHART_COLORS.length]} 
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={CHART_COLORS[index % CHART_COLORS.length]}
                           stroke="none"
                         />
                       ))}
@@ -504,7 +524,7 @@ export default function Dashboard() {
                         borderRadius: '12px',
                       }}
                     />
-                    <Legend 
+                    <Legend
                       wrapperStyle={{ fontSize: '12px' }}
                       formatter={(value) => <span className="text-muted-foreground">{value}</span>}
                     />
@@ -514,7 +534,7 @@ export default function Dashboard() {
             </BentoCard>
           </BentoGrid>
         </TabsContent>
-      </Tabs>
-    </PageContainer>
+      </Tabs >
+    </PageContainer >
   );
 }

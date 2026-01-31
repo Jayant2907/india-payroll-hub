@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Users, Calendar, IndianRupee, Lock, CheckCircle2, Receipt, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Users, Calendar, IndianRupee, Lock, CheckCircle2, Receipt, ArrowLeft, ArrowRight, Zap } from 'lucide-react';
 import { BentoCard, BentoCardHeader, BentoCardTitle, BentoCardContent } from '@/components/ui/bento-card';
 import { PageHeader, PageContainer, StepIndicator, EmptyState } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -7,8 +7,20 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getEmployees, getSalaryStructures, getPFSettings, getPTSlabs, getPayrollRuns, setPayrollRuns } from '@/lib/storage';
+import {
+  getEmployees,
+  getSalaryStructures,
+  getPFSettings,
+  getPTSlabs,
+  getPayrollRuns,
+  setPayrollRuns,
+  getTaxSettings,
+  getIncentiveRules,
+  getIncentiveAllocations,
+  setIncentiveAllocations
+} from '@/lib/storage';
 import type { Employee, PayrollRun, Payslip, VariablePay } from '@/types/payroll';
+import { calculateEmployeeTax } from '@/lib/payroll-logic';
 import { useToast } from '@/hooks/use-toast';
 
 const STEPS = ['Select Employees', 'Leave & Attendance', 'Variable Pay', 'Review & Freeze'];
@@ -23,6 +35,7 @@ export default function RunPayroll() {
   const employees = useMemo(() => getEmployees().filter(e => e.status === 'active'), []);
   const pfSettings = useMemo(() => getPFSettings(), []);
   const ptSlabs = useMemo(() => getPTSlabs(), []);
+  const taxSettings = useMemo(() => getTaxSettings(), []);
 
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
@@ -45,22 +58,35 @@ export default function RunPayroll() {
     const basicSalary = monthlyCTC * 0.4;
     const hra = basicSalary * 0.5;
     const otherAllowances = monthlyCTC - basicSalary - hra;
-    
+
     const attendance = attendanceData[emp.id] || { lwp: 0, paidLeave: 0 };
     const lwpDeduction = (monthlyCTC / 30) * attendance.lwp;
-    
+
     const variableEarnings = (variablePayData[emp.id] || []).filter(v => v.type === 'earning');
     const variableDeductions = (variablePayData[emp.id] || []).filter(v => v.type === 'deduction');
     const totalVarEarnings = variableEarnings.reduce((sum, v) => sum + v.amount, 0);
     const totalVarDeductions = variableDeductions.reduce((sum, v) => sum + v.amount, 0);
 
     const grossEarnings = basicSalary + hra + otherAllowances - lwpDeduction + totalVarEarnings;
-    
-    const pfDeduction = pfSettings.enabled ? Math.min(basicSalary, pfSettings.wageCeiling) * (pfSettings.employeeContribution / 100) : 0;
-    const ptSlab = ptSlabs.find(s => s.state === 'Karnataka' && grossEarnings >= s.minSalary && grossEarnings <= s.maxSalary);
+
+    const pfWages = basicSalary + variableEarnings.filter(v => v.pfApplicable).reduce((sum, v) => sum + v.amount, 0);
+    const pfDeduction = pfSettings.enabled ? Math.min(pfWages, pfSettings.wageCeiling) * (pfSettings.employeeContribution / 100) : 0;
+
+    const ptSlab = ptSlabs.find(s => s.state === (emp.state || 'Karnataka') && grossEarnings >= s.minSalary && grossEarnings <= s.maxSalary);
     const ptDeduction = ptSlab?.taxAmount || 0;
-    const incomeTaxDeduction = grossEarnings > 25000 ? grossEarnings * 0.1 : 0;
-    
+
+    // Real-time tax calculation with Variable Pay impact
+    const projectedVariable = totalVarEarnings * 12; // Simple projection for tax spiking demo
+    const taxCalculation = calculateEmployeeTax({
+      annualGrossIncome: emp.annualCTC + projectedVariable,
+      regime: emp.taxRegime,
+      basicSalary: emp.annualCTC * 0.4 / 12,
+      hra: emp.annualCTC * 0.2 / 12,
+      taxSettings,
+    });
+
+    const incomeTaxDeduction = Math.round(taxCalculation.monthlyTDS);
+
     const totalDeductions = pfDeduction + ptDeduction + incomeTaxDeduction + totalVarDeductions;
     const netPay = grossEarnings - totalDeductions;
 
@@ -110,10 +136,10 @@ export default function RunPayroll() {
 
     const existingRuns = getPayrollRuns();
     setPayrollRuns([...existingRuns, payrollRun]);
-    
-    toast({ 
-      title: 'Payroll Frozen Successfully', 
-      description: `Payroll for ${payslips.length} employees has been processed and locked for ${periodLabel}.` 
+
+    toast({
+      title: 'Payroll Frozen Successfully',
+      description: `Payroll for ${payslips.length} employees has been processed and locked for ${periodLabel}.`
     });
     setCurrentStep(0);
     setSelectedEmployees([]);
@@ -176,9 +202,9 @@ export default function RunPayroll() {
                   <TableHeader>
                     <TableRow className="border-border/50">
                       <TableHead className="w-12">
-                        <Checkbox 
-                          checked={selectedEmployees.length === employees.length} 
-                          onCheckedChange={selectAll} 
+                        <Checkbox
+                          checked={selectedEmployees.length === employees.length}
+                          onCheckedChange={selectAll}
                         />
                       </TableHead>
                       <TableHead>Employee</TableHead>
@@ -190,9 +216,9 @@ export default function RunPayroll() {
                     {employees.map(emp => (
                       <TableRow key={emp.id} className="border-border/30">
                         <TableCell>
-                          <Checkbox 
-                            checked={selectedEmployees.includes(emp.id)} 
-                            onCheckedChange={() => toggleEmployee(emp.id)} 
+                          <Checkbox
+                            checked={selectedEmployees.includes(emp.id)}
+                            onCheckedChange={() => toggleEmployee(emp.id)}
                           />
                         </TableCell>
                         <TableCell>
@@ -254,25 +280,25 @@ export default function RunPayroll() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Input 
-                            type="number" 
-                            className="w-20 bg-muted/30 border-border/50" 
-                            value={attendanceData[id]?.lwp || 0} 
-                            onChange={e => setAttendanceData(prev => ({ 
-                              ...prev, 
-                              [id]: { ...prev[id], lwp: Number(e.target.value), paidLeave: prev[id]?.paidLeave || 0 } 
-                            }))} 
+                          <Input
+                            type="number"
+                            className="w-20 bg-muted/30 border-border/50"
+                            value={attendanceData[id]?.lwp || 0}
+                            onChange={e => setAttendanceData(prev => ({
+                              ...prev,
+                              [id]: { ...prev[id], lwp: Number(e.target.value), paidLeave: prev[id]?.paidLeave || 0 }
+                            }))}
                           />
                         </TableCell>
                         <TableCell>
-                          <Input 
-                            type="number" 
-                            className="w-20 bg-muted/30 border-border/50" 
-                            value={attendanceData[id]?.paidLeave || 0} 
-                            onChange={e => setAttendanceData(prev => ({ 
-                              ...prev, 
-                              [id]: { ...prev[id], paidLeave: Number(e.target.value), lwp: prev[id]?.lwp || 0 } 
-                            }))} 
+                          <Input
+                            type="number"
+                            className="w-20 bg-muted/30 border-border/50"
+                            value={attendanceData[id]?.paidLeave || 0}
+                            onChange={e => setAttendanceData(prev => ({
+                              ...prev,
+                              [id]: { ...prev[id], paidLeave: Number(e.target.value), lwp: prev[id]?.lwp || 0 }
+                            }))}
                           />
                         </TableCell>
                         <TableCell>
@@ -291,24 +317,101 @@ export default function RunPayroll() {
 
         {currentStep === 2 && (
           <>
-            <BentoCardHeader>
+            <BentoCardHeader className="flex flex-row items-center justify-between">
               <BentoCardTitle className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20">
                   <IndianRupee className="h-4 w-4 text-emerald-400" />
                 </div>
                 Variable Pay
               </BentoCardTitle>
+              <Button
+                variant="outline"
+                className="gap-2 border-emerald-500/20 bg-emerald-500/5 text-emerald-500"
+                onClick={() => {
+                  const allAllocations = getIncentiveAllocations();
+                  const allRules = getIncentiveRules();
+                  const approved = allAllocations.filter(a =>
+                    a.status === 'Approved' &&
+                    a.payrollMonth === currentMonth &&
+                    a.payrollYear === currentYear &&
+                    selectedEmployees.includes(a.employeeId)
+                  );
+
+                  if (approved.length === 0) {
+                    toast({
+                      title: 'No Approved Incentives',
+                      description: 'There are no pre-approved incentives for the selected employees in this payroll month.',
+                      variant: 'destructive'
+                    });
+                    return;
+                  }
+
+                  const newVarPayData: Record<string, VariablePay[]> = { ...variablePayData };
+                  approved.forEach(a => {
+                    const rule = allRules.find(r => r.id === a.ruleId);
+                    if (!newVarPayData[a.employeeId]) newVarPayData[a.employeeId] = [];
+                    newVarPayData[a.employeeId].push({
+                      id: a.id,
+                      name: rule?.name || 'Approved Incentive',
+                      type: a.isRecovery ? 'deduction' : 'earning',
+                      amount: a.calculatedAmount,
+                      pfApplicable: rule?.pfApplicable,
+                      esiApplicable: rule?.esiApplicable,
+                      isTaxable: rule?.taxTreatmentType !== 'Exempt'
+                    });
+                  });
+
+                  setVariablePayData(newVarPayData);
+                  toast({
+                    title: 'Incentives Imported',
+                    description: `Successfully synced ${approved.length} approved payouts into the payroll run.`
+                  });
+                }}
+              >
+                <Zap className="h-4 w-4" />
+                Sync Approved Incentives
+              </Button>
             </BentoCardHeader>
             <BentoCardContent>
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted/50">
-                  <IndianRupee className="h-8 w-8 text-muted-foreground/50" />
-                </div>
-                <p className="text-lg font-medium text-foreground mb-2">Variable pay module ready</p>
-                <p className="text-muted-foreground max-w-md">
-                  Add bonuses, arrears, or deductions for selected employees. Click Next to proceed with standard calculations.
-                </p>
-              </div>
+              {selectedEmployees.length === 0 ? (
+                <EmptyState
+                  icon={<IndianRupee className="h-10 w-10" />}
+                  title="No employees selected"
+                  description="Go back to step 1 and select employees to add variable pay."
+                />
+              ) : (
+                <Table className="premium-table">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Earnings</TableHead>
+                      <TableHead>Deductions</TableHead>
+                      <TableHead className="text-right">Total Variable</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedEmployees.map(id => {
+                      const emp = employees.find(e => e.id === id)!;
+                      const items = variablePayData[id] || [];
+                      const earnings = items.filter(i => i.type === 'earning').reduce((s, i) => s + i.amount, 0);
+                      const deductions = items.filter(i => i.type === 'deduction').reduce((s, i) => s + i.amount, 0);
+                      return (
+                        <TableRow key={id}>
+                          <TableCell>
+                            <div className="font-medium">{emp.firstName} {emp.lastName}</div>
+                            <div className="text-xs text-muted-foreground">{emp.employeeCode}</div>
+                          </TableCell>
+                          <TableCell className="text-emerald-400 font-medium">+{formatCurrency(earnings)}</TableCell>
+                          <TableCell className="text-rose-400 font-medium">-{formatCurrency(deductions)}</TableCell>
+                          <TableCell className="text-right font-bold">
+                            {formatCurrency(earnings - deductions)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </BentoCardContent>
           </>
         )}
@@ -379,9 +482,9 @@ export default function RunPayroll() {
 
       {/* Navigation */}
       <div className="flex justify-between">
-        <Button 
-          variant="outline" 
-          onClick={() => setCurrentStep(s => s - 1)} 
+        <Button
+          variant="outline"
+          onClick={() => setCurrentStep(s => s - 1)}
           disabled={currentStep === 0}
           className="gap-2"
         >
@@ -389,8 +492,8 @@ export default function RunPayroll() {
           Previous
         </Button>
         {currentStep < 3 ? (
-          <Button 
-            onClick={() => setCurrentStep(s => s + 1)} 
+          <Button
+            onClick={() => setCurrentStep(s => s + 1)}
             disabled={currentStep === 0 && selectedEmployees.length === 0}
             className="gap-2 shadow-lg shadow-primary/20"
           >
@@ -398,8 +501,8 @@ export default function RunPayroll() {
             <ArrowRight className="h-4 w-4" />
           </Button>
         ) : (
-          <Button 
-            onClick={handleFreeze} 
+          <Button
+            onClick={handleFreeze}
             className="gap-2 bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/20"
           >
             <Lock className="h-4 w-4" />

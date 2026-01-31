@@ -9,9 +9,11 @@ import {
   Settings,
   Receipt,
   UserCircle,
+  TrendingUp,
   LogOut,
   Moon,
   Sun,
+  Trophy
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -46,6 +48,8 @@ const navItems: NavItem[] = [
   { title: 'Salary Structures', href: '/salary-structures', icon: Wallet, roles: ['admin'] },
   { title: 'Statutory', href: '/statutory', icon: Calculator, roles: ['admin'] },
   { title: 'Run Payroll', href: '/payroll', icon: Receipt, roles: ['admin'] },
+  { title: 'Incentives', href: '/payroll/incentives', icon: Trophy, roles: ['admin', 'accountant'] },
+  { title: 'Tax Optimizer', href: '/payroll/optimizer', icon: TrendingUp, roles: ['admin', 'accountant'] },
   { title: 'Settlements', href: '/settlements', icon: FileText, roles: ['admin'] },
   { title: 'My Profile', href: '/my-profile', icon: UserCircle, roles: ['employee'] },
 ];

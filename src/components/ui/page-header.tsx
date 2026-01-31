@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string;
@@ -25,7 +26,7 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-chart-2/10 rounded-full blur-3xl" />
         </div>
-        
+
         <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-start gap-4">
             {icon && (
@@ -129,16 +130,19 @@ interface StatsCardProps extends React.HTMLAttributes<HTMLDivElement> {
 const StatsCard = React.forwardRef<HTMLDivElement, StatsCardProps>(
   ({ className, title, value, subtitle, icon, iconColor = 'bg-primary/20 text-primary', trend, trendValue, ...props }, ref) => {
     return (
-      <div
+      <motion.div
         ref={ref}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -5, scale: 1.02 }}
         className={cn(
-          'glass-card-hover p-6 group cursor-default',
+          'glass-card-hover p-6 group cursor-default transition-all',
           className
         )}
         {...props}
       >
         <div className="flex items-start justify-between">
-          <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:scale-110', iconColor)}>
+          <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:rotate-12', iconColor)}>
             {icon}
           </div>
           {trend && trendValue && (
@@ -153,12 +157,18 @@ const StatsCard = React.forwardRef<HTMLDivElement, StatsCardProps>(
         </div>
         <div className="mt-4 space-y-1">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">{value}</p>
+          <motion.p
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="text-2xl font-bold tracking-tight text-foreground md:text-3xl"
+          >
+            {value}
+          </motion.p>
           {subtitle && (
             <p className="text-xs text-muted-foreground">{subtitle}</p>
           )}
         </div>
-      </div>
+      </motion.div>
     );
   }
 );
@@ -180,7 +190,7 @@ const StepIndicator = React.forwardRef<HTMLDivElement, StepIndicatorProps>(
         {steps.map((step, index) => {
           const isActive = index === currentStep;
           const isCompleted = index < currentStep;
-          
+
           return (
             <div
               key={step}
