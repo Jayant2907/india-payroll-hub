@@ -17,6 +17,8 @@ import SalaryStructures from "@/pages/SalaryStructures";
 import Statutory from "@/pages/Statutory";
 import RunPayroll from "@/pages/RunPayroll";
 import Settlements from "@/pages/Settlements";
+import TaxOptimizer from "@/pages/TaxOptimizer";
+import Incentives from "@/pages/Incentives";
 import MyProfile from "@/pages/MyProfile";
 import NotFound from "@/pages/NotFound";
 
@@ -34,7 +36,7 @@ const App = () => (
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/" element={<Navigate to="/login" replace />} />
-                
+
                 {/* Admin & Accountant Routes */}
                 <Route
                   path="/dashboard"
@@ -44,7 +46,7 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
-                
+
                 {/* Admin Only Routes */}
                 <Route
                   path="/employees"
@@ -87,6 +89,22 @@ const App = () => (
                   }
                 />
                 <Route
+                  path="/payroll/optimizer"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'accountant']}>
+                      <TaxOptimizer />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/payroll/incentives"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'accountant']}>
+                      <Incentives />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/settlements"
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
@@ -94,7 +112,7 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
-                
+
                 {/* Employee Route */}
                 <Route
                   path="/my-profile"
@@ -104,7 +122,7 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
-                
+
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </MainLayout>

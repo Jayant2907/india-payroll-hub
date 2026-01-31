@@ -25,25 +25,13 @@ export const STORAGE_KEYS = {
   PF_SETTINGS: 'app_pf_settings',
   PAYROLL_RUNS: 'processedPayrolls',
   SETTLEMENTS: 'app_settlements',
+  INCENTIVE_RULES: 'app_incentive_rules',
+  INCENTIVE_ALLOCATIONS: 'app_incentive_allocations',
+  INCENTIVE_LOGS: 'app_incentive_logs',
 } as const;
 
-// Generic storage functions
-function getItem<T>(key: string, defaultValue: T): T {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
-  } catch {
-    return defaultValue;
-  }
-}
+import { getItem, setItem } from './storage-fallback';
 
-function setItem<T>(key: string, value: T): void {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.error(`Error saving to localStorage: ${key}`, error);
-  }
-}
 
 // User
 export const getCurrentUser = (): User | null => getItem<User | null>(STORAGE_KEYS.USER, null);
@@ -136,6 +124,57 @@ export const setPayrollRuns = (runs: PayrollRun[]): void => setItem(STORAGE_KEYS
 export const getSettlements = (): Settlement[] => getItem<Settlement[]>(STORAGE_KEYS.SETTLEMENTS, []);
 export const setSettlements = (settlements: Settlement[]): void => setItem(STORAGE_KEYS.SETTLEMENTS, settlements);
 
+// Incentives
+export const getIncentiveRules = (): IncentiveRule[] => getItem<IncentiveRule[]>(STORAGE_KEYS.INCENTIVE_RULES, []);
+export const setIncentiveRules = (rules: IncentiveRule[]): void => setItem(STORAGE_KEYS.INCENTIVE_RULES, rules);
+
+export const getIncentiveAllocations = (): IncentiveAllocation[] => getItem<IncentiveAllocation[]>(STORAGE_KEYS.INCENTIVE_ALLOCATIONS, []);
+export const setIncentiveAllocations = (allocations: IncentiveAllocation[]): void => setItem(STORAGE_KEYS.INCENTIVE_ALLOCATIONS, allocations);
+
+export const getIncentiveLogs = (): IncentiveApprovalLog[] => getItem<IncentiveApprovalLog[]>(STORAGE_KEYS.INCENTIVE_LOGS, []);
+export const setIncentiveLogs = (logs: IncentiveApprovalLog[]): void => setItem(STORAGE_KEYS.INCENTIVE_LOGS, logs);
+
+export const resetIncentiveData = (): void => {
+  localStorage.removeItem(STORAGE_KEYS.INCENTIVE_ALLOCATIONS);
+  localStorage.removeItem(STORAGE_KEYS.INCENTIVE_LOGS);
+};
+
+export const updateIncentiveStatus = (allocationId: string, newStatus: IncentiveStatus, user: string, comments?: string): void => {
+  const allocations = getIncentiveAllocations();
+  const logs = getIncentiveLogs();
+  const index = allocations.findIndex(a => a.id === allocationId);
+
+  if (index !== -1) {
+    const statusBefore = allocations[index].status;
+    allocations[index] = { ...allocations[index], status: newStatus, updatedAt: new Date().toISOString() };
+
+    // Add audit log
+    const log: IncentiveApprovalLog = {
+      id: `log-${Date.now()}`,
+      allocationId,
+      approvedBy: user,
+      approvedAt: new Date().toISOString(),
+      statusBefore,
+      statusAfter: newStatus,
+      comments
+    };
+
+    logs.push(log);
+    setIncentiveAllocations(allocations);
+    setIncentiveLogs(logs);
+
+    // If approved, lock the associated rule
+    if (newStatus === 'Approved') {
+      const rules = getIncentiveRules();
+      const ruleIndex = rules.findIndex(r => r.id === allocations[index].ruleId);
+      if (ruleIndex !== -1 && !rules[ruleIndex].isLocked) {
+        rules[ruleIndex].isLocked = true;
+        setIncentiveRules(rules);
+      }
+    }
+  }
+};
+
 // Default Data Generators
 function getDefaultMasterComponents(): SalaryComponent[] {
   return [
@@ -200,17 +239,47 @@ function getDefaultMasterComponents(): SalaryComponent[] {
       isActive: true,
     },
     {
-      id: 'comp-5',
-      name: 'Special Allowance',
-      code: 'SPAL',
+      id: 'comp-6',
+      name: 'Performance Bonus',
+      code: 'BONUS',
       type: 'earning',
-      calculationType: 'percentage_of_ctc',
-      value: 20,
+      calculationType: 'fixed',
+      value: 0,
       isTaxable: true,
       includeInGross: true,
       includeInPF: false,
-      includeInESI: true,
+      includeInESI: false,
       includeInPT: true,
+      includeInLWF: false,
+      isActive: true,
+    },
+    {
+      id: 'comp-7',
+      name: 'Leave Travel Allowance',
+      code: 'LTA',
+      type: 'earning',
+      calculationType: 'fixed',
+      value: 0,
+      isTaxable: true,
+      includeInGross: true,
+      includeInPF: false,
+      includeInESI: false,
+      includeInPT: true,
+      includeInLWF: false,
+      isActive: true,
+    },
+    {
+      id: 'comp-8',
+      name: 'Internet Reimbursement',
+      code: 'INT',
+      type: 'earning',
+      calculationType: 'fixed',
+      value: 1000,
+      isTaxable: false,
+      includeInGross: true,
+      includeInPF: false,
+      includeInESI: false,
+      includeInPT: false,
       includeInLWF: false,
       isActive: true,
     },
@@ -363,7 +432,7 @@ export const initializeDemoData = (): void => {
         department: 'Engineering',
         status: 'active',
         joiningDate: '2023-09-01',
-        annualCTC: 900000,
+        annualCTC: 850000,
         salaryStructureId: 'struct-1',
         pan: 'JKLSR2345D',
         aadhaar: '456789012345',
@@ -406,6 +475,189 @@ export const initializeDemoData = (): void => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
+      {
+        id: 'emp-6',
+        firstName: 'Anjali',
+        lastName: 'Mehta',
+        dateOfBirth: '1991-11-05',
+        gender: 'female',
+        maritalStatus: 'married',
+        email: 'anjali.mehta@acmetech.com',
+        phone: '9876543215',
+        address: '12, Jayanagar',
+        city: 'Bengaluru',
+        state: 'Karnataka',
+        pincode: '560011',
+        employeeCode: 'ACM006',
+        role: 'Senior UI/UX Designer',
+        department: 'Design',
+        status: 'inactive',
+        joiningDate: '2020-05-15',
+        exitDate: '2025-01-15',
+        annualCTC: 1650000,
+        salaryStructureId: 'struct-1',
+        pan: 'PQRAN1234F',
+        aadhaar: '678901234567',
+        uan: '100678901234',
+        bankName: 'Yes Bank',
+        bankAccountNumber: '9876543210',
+        bankIfsc: 'YESB0001234',
+        taxRegime: 'new',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: 'emp-7',
+        firstName: 'Karthik',
+        lastName: 'Rao',
+        dateOfBirth: '1987-09-30',
+        gender: 'male',
+        maritalStatus: 'married',
+        email: 'karthik.rao@acmetech.com',
+        phone: '9876543216',
+        address: '88, Malleshwaram',
+        city: 'Bengaluru',
+        state: 'Karnataka',
+        pincode: '560003',
+        employeeCode: 'ACM007',
+        role: 'VP Sales',
+        department: 'Sales',
+        status: 'inactive',
+        joiningDate: '2018-02-01',
+        exitDate: '2025-01-30',
+        annualCTC: 4500000,
+        salaryStructureId: 'struct-3',
+        pan: 'STUKV5678G',
+        aadhaar: '789012345678',
+        uan: '100789012345',
+        bankName: 'Standard Chartered',
+        bankAccountNumber: '34567890',
+        bankIfsc: 'SCBL0036083',
+        taxRegime: 'old',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: 'emp-8',
+        firstName: 'Meera',
+        lastName: 'Nair',
+        dateOfBirth: '1994-01-12',
+        gender: 'female',
+        maritalStatus: 'single',
+        email: 'meera.nair@acmetech.com',
+        phone: '9876543217',
+        address: '3, Ulsoor Road',
+        city: 'Bengaluru',
+        state: 'Karnataka',
+        pincode: '560042',
+        employeeCode: 'ACM008',
+        role: 'Marketing Executive',
+        department: 'Marketing',
+        status: 'inactive',
+        joiningDate: '2023-01-10',
+        exitDate: '2025-01-25',
+        annualCTC: 720000,
+        salaryStructureId: 'struct-1',
+        pan: 'VWXMN9012H',
+        aadhaar: '890123456789',
+        uan: '100890123456',
+        bankName: 'IDFC First',
+        bankAccountNumber: '1002345678',
+        bankIfsc: 'IDFB0001234',
+        taxRegime: 'new',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: 'emp-9',
+        firstName: 'Priya',
+        lastName: 'Patel',
+        dateOfBirth: '1992-05-22',
+        gender: 'female',
+        maritalStatus: 'married',
+        email: 'priya.patel@acmetech.com',
+        phone: '9876543218',
+        address: '12, Brigade Road',
+        city: 'Bengaluru',
+        state: 'Karnataka',
+        pincode: '560001',
+        employeeCode: 'ACM009',
+        role: 'Senior Product Manager',
+        department: 'Product',
+        status: 'active',
+        joiningDate: '2021-06-15',
+        annualCTC: 2800000,
+        salaryStructureId: 'struct-2',
+        pan: 'ABCDE1234F',
+        aadhaar: '123456789012',
+        uan: '100123456789',
+        bankName: 'HDFC Bank',
+        bankAccountNumber: '501002345678',
+        bankIfsc: 'HDFC0000123',
+        taxRegime: 'new',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: 'emp-10',
+        firstName: 'Arjun',
+        lastName: 'Reddy',
+        dateOfBirth: '1990-11-05',
+        gender: 'male',
+        maritalStatus: 'single',
+        email: 'arjun.reddy@acmetech.com',
+        phone: '9876543219',
+        address: '45, Indiranagar',
+        city: 'Bengaluru',
+        state: 'Karnataka',
+        pincode: '560038',
+        employeeCode: 'ACM010',
+        role: 'Lead Architect',
+        department: 'Engineering',
+        status: 'active',
+        joiningDate: '2019-03-20',
+        annualCTC: 4200000,
+        salaryStructureId: 'struct-3',
+        pan: 'FGHIJ5678K',
+        aadhaar: '234567890123',
+        uan: '100234567890',
+        bankName: 'ICICI Bank',
+        bankAccountNumber: '000234567890',
+        bankIfsc: 'ICIC0000001',
+        taxRegime: 'old',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: 'emp-11',
+        firstName: 'Siddharth',
+        lastName: 'Malhotra',
+        dateOfBirth: '1995-07-18',
+        gender: 'male',
+        maritalStatus: 'single',
+        email: 'sid.m@acmetech.com',
+        phone: '9876543220',
+        address: '22, Koramangala',
+        city: 'Bengaluru',
+        state: 'Karnataka',
+        pincode: '560034',
+        employeeCode: 'ACM011',
+        role: 'Frontend Developer',
+        department: 'Engineering',
+        status: 'active',
+        joiningDate: '2022-01-05',
+        annualCTC: 1450000,
+        salaryStructureId: 'struct-1',
+        pan: 'LMNOP1234Q',
+        aadhaar: '345678901234',
+        uan: '100345678901',
+        bankName: 'Axis Bank',
+        bankAccountNumber: '912345678901',
+        bankIfsc: 'UTIB0000123',
+        taxRegime: 'new',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
     ];
     setEmployees(demoEmployees);
   }
@@ -442,7 +694,89 @@ export const initializeDemoData = (): void => {
           { componentId: 'comp-5', componentName: 'Special Allowance', componentCode: 'SPAL', type: 'earning', calculationType: 'percentage_of_ctc', value: 15, isTaxable: true },
         ],
       },
+      {
+        id: 'struct-3',
+        name: 'Executive Leadership',
+        description: 'Comprehensive structure for senior leadership',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        components: [
+          { componentId: 'comp-1', componentName: 'Basic Salary', componentCode: 'BASIC', type: 'earning', calculationType: 'percentage_of_ctc', value: 50, isTaxable: true },
+          { componentId: 'comp-2', componentName: 'House Rent Allowance', componentCode: 'HRA', type: 'earning', calculationType: 'percentage_of_basic', value: 50, isTaxable: true },
+          { componentId: 'comp-3', componentName: 'Conveyance Allowance', componentCode: 'CONV', type: 'earning', calculationType: 'fixed', value: 5000, isTaxable: false },
+          { componentId: 'comp-4', componentName: 'Medical Allowance', componentCode: 'MED', type: 'earning', calculationType: 'fixed', value: 5000, isTaxable: true },
+          { componentId: 'comp-5', componentName: 'Special Allowance', componentCode: 'SPAL', type: 'earning', calculationType: 'percentage_of_ctc', value: 25, isTaxable: true },
+        ],
+      },
     ];
     setSalaryStructures(defaultStructures);
   }
+
+  // Initialize Incentive Rules if empty
+  if (getIncentiveRules().length === 0) {
+    const demoRules: IncentiveRule[] = [
+      {
+        id: 'rule-sales-1',
+        name: 'Standard Sales Commission',
+        category: 'Sales',
+        formulaExpression: 'monthlyBasic * 0.15',
+        baseComponent: 'Basic',
+        recurrenceType: 'Monthly',
+        recurrenceCount: 12,
+        taxTreatmentType: 'FullyTaxable',
+        pfApplicable: false,
+        esiApplicable: false,
+        effectiveFrom: new Date().toISOString(),
+        version: 1,
+        createdBy: 'Admin',
+        createdAt: new Date().toISOString(),
+        isLocked: true,
+      },
+      {
+        id: 'rule-perf-1',
+        name: 'Quarterly Performance Bonus',
+        category: 'Performance',
+        formulaExpression: 'monthlyCTC * 0.05',
+        baseComponent: 'CTC',
+        recurrenceType: 'OneTime',
+        recurrenceCount: 1,
+        taxTreatmentType: 'FullyTaxable',
+        pfApplicable: false,
+        esiApplicable: false,
+        effectiveFrom: new Date().toISOString(),
+        version: 1,
+        createdBy: 'Admin',
+        createdAt: new Date().toISOString(),
+        isLocked: false,
+      }
+    ];
+    setIncentiveRules(demoRules);
+
+    // Add a demo approved allocation for Rahul Sharma (emp-1)
+    const rahul = getEmployees().find(e => e.id === 'emp-1');
+    if (rahul) {
+      const allocation: IncentiveAllocation = {
+        id: 'demo-alloc-1',
+        ruleId: 'rule-sales-1',
+        employeeId: 'emp-1',
+        departmentId: 'Engineering',
+        calculatedAmount: (rahul.annualCTC * 0.4 / 12) * 0.15,
+        payrollMonth: new Date().getMonth() + 1,
+        payrollYear: new Date().getFullYear(),
+        status: 'Approved',
+        isRecovery: false,
+        sourceRuleVersion: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setIncentiveAllocations([allocation]);
+    }
+  }
+};
+
+export const forceResetDemoData = (): void => {
+  localStorage.clear();
+  initializeDemoData();
+  window.location.reload();
 };

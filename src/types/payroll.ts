@@ -192,6 +192,9 @@ export interface VariablePay {
   name: string;
   type: 'earning' | 'deduction';
   amount: number;
+  pfApplicable?: boolean;
+  esiApplicable?: boolean;
+  isTaxable?: boolean;
 }
 
 // FnF Settlement
@@ -222,6 +225,59 @@ export interface ThemeConfig {
   sidebarColor: string;
   backgroundColor: string;
   chartColors: string[];
+}
+
+// Variable Pay & Incentive Management
+export type IncentiveCategory = 'Sales' | 'Retention' | 'Performance' | 'Adhoc';
+export type RecurrenceType = 'OneTime' | 'Monthly' | 'Quarterly';
+export type TaxTreatmentType = 'FullyTaxable' | 'PartiallyTaxable' | 'Exempt';
+export type IncentiveStatus = 'Draft' | 'PendingApproval' | 'Approved' | 'Imported' | 'Paid' | 'Cancelled';
+
+export interface IncentiveRule {
+  id: string;
+  name: string;
+  category: IncentiveCategory;
+  formulaExpression: string; // e.g. "monthlyBasic * 0.1"
+  baseComponent: 'CTC' | 'Basic' | 'Fixed';
+  capAmount?: number;
+  recurrenceType: RecurrenceType;
+  recurrenceCount: number;
+  taxTreatmentType: TaxTreatmentType;
+  pfApplicable: boolean;
+  esiApplicable: boolean;
+  effectiveFrom: string;
+  effectiveTo?: string;
+  version: number;
+  createdBy: string;
+  createdAt: string;
+  isLocked: boolean; // Locked after first approval
+}
+
+export interface IncentiveAllocation {
+  id: string;
+  ruleId: string;
+  employeeId: string;
+  departmentId?: string;
+  calculatedAmount: number;
+  payrollMonth: number;
+  payrollYear: number;
+  status: IncentiveStatus;
+  isRecovery: boolean;
+  sourceRuleVersion: number;
+  installmentNumber?: number;
+  totalInstallments?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IncentiveApprovalLog {
+  id: string;
+  allocationId: string;
+  approvedBy: string;
+  approvedAt: string;
+  statusBefore: IncentiveStatus;
+  statusAfter: IncentiveStatus;
+  comments?: string;
 }
 
 // Navigation
