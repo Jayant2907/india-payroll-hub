@@ -8,41 +8,54 @@ interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: React.ReactNode;
   actions?: React.ReactNode;
   badge?: React.ReactNode;
+  compact?: boolean;
 }
 
 const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
-  ({ className, title, description, icon, actions, badge, ...props }, ref) => {
+  ({ className, title, description, icon, actions, badge, compact, ...props }, ref) => {
     return (
       <div
         ref={ref}
         className={cn(
-          'relative overflow-hidden rounded-2xl glass-card p-6 md:p-8',
+          'relative overflow-hidden rounded-2xl glass-card transition-all duration-300',
+          compact ? 'p-3 md:p-4' : 'p-6 md:p-8',
           className
         )}
         {...props}
       >
         {/* Background gradient decoration */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-chart-2/10 rounded-full blur-3xl" />
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl opacity-50" />
+          {!compact && <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-chart-2/10 rounded-full blur-3xl opacity-50" />}
         </div>
 
         <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-start gap-4">
             {icon && (
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/20 shadow-lg shadow-primary/10">
-                {icon}
+              <div className={cn(
+                "flex shrink-0 items-center justify-center rounded-xl bg-primary/20 shadow-lg shadow-primary/10 transition-all",
+                compact ? "h-10 w-10" : "h-14 w-14"
+              )}>
+                {React.cloneElement(icon as React.ReactElement, {
+                  className: cn((icon as React.ReactElement).props.className, compact ? "h-5 w-5" : "h-7 w-7")
+                })}
               </div>
             )}
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+                <h1 className={cn(
+                  "font-bold tracking-tight text-foreground transition-all",
+                  compact ? "text-xl md:text-2xl" : "text-2xl md:text-3xl"
+                )}>
                   {title}
                 </h1>
                 {badge}
               </div>
               {description && (
-                <p className="text-sm text-muted-foreground md:text-base">
+                <p className={cn(
+                  "text-muted-foreground transition-all",
+                  compact ? "text-xs md:text-sm" : "text-sm md:text-base"
+                )}>
                   {description}
                 </p>
               )}
@@ -155,17 +168,17 @@ const StatsCard = React.forwardRef<HTMLDivElement, StatsCardProps>(
             </div>
           )}
         </div>
-        <div className="mt-4 space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+        <div className="mt-3 space-y-0.5">
+          <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">{title}</p>
           <motion.p
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            className="text-2xl font-bold tracking-tight text-foreground md:text-3xl"
+            className="text-xl font-bold tracking-tight text-foreground md:text-2xl"
           >
             {value}
           </motion.p>
           {subtitle && (
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
+            <p className="text-[10px] text-muted-foreground">{subtitle}</p>
           )}
         </div>
       </motion.div>
