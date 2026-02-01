@@ -219,40 +219,39 @@ export default function Incentives() {
     return (
         <PageContainer>
             <PageHeader
-                compact
                 title="Incentive Management"
                 description="Enterprise command center for variable pay, performance bonuses, and sales commissions."
-                icon={<Trophy className="text-primary animate-bounce-slow" />}
+                icon={<Trophy className="h-7 w-7 text-primary animate-bounce-slow" />}
                 actions={
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="gap-2 border-rose-500/20 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10" onClick={handleResetData}>
+                    <div className="flex gap-3">
+                        <Button variant="outline" className="gap-2 border-rose-500/20 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10" onClick={handleResetData}>
                             <Trash2 className="h-4 w-4" />
-                            Reset Data
+                            Reset All Data
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-2 border-primary/20 bg-primary/5 text-primary">
+                        <Button variant="outline" className="gap-2 border-primary/20 bg-primary/5 text-primary">
                             <History className="h-4 w-4" />
-                            Audit
+                            Audit Logs
                         </Button>
-                        <Button size="sm" onClick={() => setShowAddRule(true)} className="gap-2 shadow-lg shadow-primary/20 font-bold">
+                        <Button onClick={() => setShowAddRule(true)} className="gap-2 shadow-lg shadow-primary/20">
                             <Plus className="h-4 w-4" />
-                            New Rule
+                            Define New Rule
                         </Button>
                     </div>
                 }
             />
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                    <BentoCard className="border-l-4 border-l-amber-500 overflow-hidden">
-                        <BentoCardContent className="p-3">
+                    <BentoCard className="border-l-4 border-l-amber-500">
+                        <BentoCardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Pending Approvals</p>
-                                    <h3 className="text-xl font-bold mt-0.5">{stats.pending}</h3>
+                                    <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">Pending Approvals</p>
+                                    <h3 className="text-3xl font-bold mt-1">{stats.pending}</h3>
                                 </div>
-                                <div className="h-9 w-9 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
-                                    <Clock className="h-4 w-4 text-amber-500" />
+                                <div className="h-12 w-12 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                    <Clock className="h-6 w-6 text-amber-500" />
                                 </div>
                             </div>
                         </BentoCardContent>
@@ -260,15 +259,15 @@ export default function Incentives() {
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                    <BentoCard className="border-l-4 border-l-emerald-500 overflow-hidden">
-                        <BentoCardContent className="p-3">
+                    <BentoCard className="border-l-4 border-l-emerald-500">
+                        <BentoCardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Total Variable Payout</p>
-                                    <h3 className="text-xl font-bold mt-0.5 text-emerald-400">{formatCurrency(stats.totalValue)}</h3>
+                                    <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">Total Variable Payout</p>
+                                    <h3 className="text-3xl font-bold mt-1 text-emerald-400">{formatCurrency(stats.totalValue)}</h3>
                                 </div>
-                                <div className="h-9 w-9 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                                    <TrendingUp className="h-4 w-4 text-emerald-500" />
+                                <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                    <TrendingUp className="h-6 w-6 text-emerald-500" />
                                 </div>
                             </div>
                         </BentoCardContent>
@@ -276,15 +275,15 @@ export default function Incentives() {
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                    <BentoCard className="border-l-4 border-l-primary overflow-hidden">
-                        <BentoCardContent className="p-3">
+                    <BentoCard className="border-l-4 border-l-primary">
+                        <BentoCardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Approved for Payroll</p>
-                                    <h3 className="text-xl font-bold mt-0.5">{stats.approvedThisMonth}</h3>
+                                    <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">Approved for Payroll</p>
+                                    <h3 className="text-3xl font-bold mt-1">{stats.approvedThisMonth}</h3>
                                 </div>
-                                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                    <ShieldCheck className="h-4 w-4 text-primary" />
+                                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <ShieldCheck className="h-6 w-6 text-primary" />
                                 </div>
                             </div>
                         </BentoCardContent>
@@ -327,7 +326,7 @@ export default function Incentives() {
                             )}
                         </div>
                     </BentoCardHeader>
-                    <BentoCardContent className="p-0">
+                    <BentoCardContent>
                         {filteredAllocations.length === 0 ? (
                             <div className="py-12 text-center">
                                 <Target className="h-12 w-12 text-muted-foreground/20 mx-auto mb-4" />
@@ -335,74 +334,72 @@ export default function Incentives() {
                                 <p className="text-muted-foreground">Define a rule and assign it to employees to get started.</p>
                             </div>
                         ) : (
-                            <div className="max-h-[600px] overflow-auto">
-                                <Table className="premium-table">
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Employee</TableHead>
-                                            <TableHead>Cycle</TableHead>
-                                            <TableHead>Installment</TableHead>
-                                            <TableHead className="text-right">Amount</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead className="text-right">Action</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredAllocations.map(alloc => {
-                                            const emp = employees.find(e => e.id === alloc.employeeId);
-                                            const rule = rules.find(r => r.id === alloc.ruleId);
-                                            return (
-                                                <TableRow key={alloc.id}>
-                                                    <TableCell>
-                                                        <div className="font-medium">{emp?.firstName} {emp?.lastName}</div>
-                                                        <div className="text-[10px] text-muted-foreground uppercase">{emp?.employeeCode}</div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs font-bold">{getMonthName(alloc.payrollMonth)}</span>
-                                                            <span className="text-[10px] text-muted-foreground">{alloc.payrollYear}</span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {alloc.installmentNumber ? (
-                                                            <Badge variant="secondary" className="text-[10px] h-5 bg-primary/10 text-primary border-none">
-                                                                {alloc.installmentNumber} of {alloc.totalInstallments}
-                                                            </Badge>
-                                                        ) : (
-                                                            <span className="text-[10px] text-muted-foreground italic">One-time</span>
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell className="text-right font-bold text-emerald-400">
-                                                        {formatCurrency(alloc.calculatedAmount)}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge
-                                                            className={
-                                                                alloc.status === 'Approved' ? 'status-active text-[10px]' :
-                                                                    alloc.status === 'PendingApproval' ? 'status-pending text-[10px]' : 'bg-muted text-muted-foreground text-[10px]'
-                                                            }
-                                                        >
-                                                            {alloc.status}
+                            <Table className="premium-table">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Employee</TableHead>
+                                        <TableHead>Cycle</TableHead>
+                                        <TableHead>Installment</TableHead>
+                                        <TableHead className="text-right">Amount</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead className="text-right">Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredAllocations.map(alloc => {
+                                        const emp = employees.find(e => e.id === alloc.employeeId);
+                                        const rule = rules.find(r => r.id === alloc.ruleId);
+                                        return (
+                                            <TableRow key={alloc.id}>
+                                                <TableCell>
+                                                    <div className="font-medium">{emp?.firstName} {emp?.lastName}</div>
+                                                    <div className="text-[10px] text-muted-foreground uppercase">{emp?.employeeCode}</div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs font-bold">{getMonthName(alloc.payrollMonth)}</span>
+                                                        <span className="text-[10px] text-muted-foreground">{alloc.payrollYear}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {alloc.installmentNumber ? (
+                                                        <Badge variant="secondary" className="text-[10px] h-5 bg-primary/10 text-primary border-none">
+                                                            {alloc.installmentNumber} of {alloc.totalInstallments}
                                                         </Badge>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        {alloc.status === 'Draft' && (
-                                                            <Button size="sm" variant="ghost" className="h-8 text-amber-500 hover:text-amber-400 text-xs" onClick={() => handleStatusUpdate(alloc.id, 'PendingApproval')}>
-                                                                <Send className="h-3 w-3 mr-1" /> Submit
-                                                            </Button>
-                                                        )}
-                                                        {alloc.status === 'PendingApproval' && (
-                                                            <Button size="sm" variant="ghost" className="h-8 text-emerald-500 hover:text-emerald-400 text-xs" onClick={() => handleStatusUpdate(alloc.id, 'Approved')}>
-                                                                <CheckCircle2 className="h-3 w-3 mr-1" /> Approve
-                                                            </Button>
-                                                        )}
-                                                    </TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                                                    ) : (
+                                                        <span className="text-[10px] text-muted-foreground italic">One-time</span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-right font-bold text-emerald-400">
+                                                    {formatCurrency(alloc.calculatedAmount)}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge
+                                                        className={
+                                                            alloc.status === 'Approved' ? 'status-active text-[10px]' :
+                                                                alloc.status === 'PendingApproval' ? 'status-pending text-[10px]' : 'bg-muted text-muted-foreground text-[10px]'
+                                                        }
+                                                    >
+                                                        {alloc.status}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {alloc.status === 'Draft' && (
+                                                        <Button size="sm" variant="ghost" className="h-8 text-amber-500 hover:text-amber-400 text-xs" onClick={() => handleStatusUpdate(alloc.id, 'PendingApproval')}>
+                                                            <Send className="h-3 w-3 mr-1" /> Submit
+                                                        </Button>
+                                                    )}
+                                                    {alloc.status === 'PendingApproval' && (
+                                                        <Button size="sm" variant="ghost" className="h-8 text-emerald-500 hover:text-emerald-400 text-xs" onClick={() => handleStatusUpdate(alloc.id, 'Approved')}>
+                                                            <CheckCircle2 className="h-3 w-3 mr-1" /> Approve
+                                                        </Button>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
                         )}
                     </BentoCardContent>
                 </BentoCard>
@@ -471,102 +468,99 @@ export default function Incentives() {
             {/* Add Rule Dialog */}
             <AnimatePresence>
                 {showAddRule && (
-                    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md">
-                        <div className="flex min-h-screen items-start md:items-center justify-center p-4 py-12 md:py-4">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95, y: 40 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: 40 }}
-                                transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                                className="bg-background border border-border/50 rounded-2xl w-full max-w-lg shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden ring-1 ring-white/10"
-                            >
-                                <div className="p-6 border-b border-border/50 flex justify-between items-center">
-                                    <h2 className="text-xl font-bold flex items-center gap-2">
-                                        <Calculator className="h-5 w-5 text-primary" />
-                                        New Rule
-                                    </h2>
-                                    <Button variant="ghost" size="sm" onClick={() => setShowAddRule(false)}>✕</Button>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="bg-background border border-border rounded-2xl w-full max-w-lg shadow-2xl"
+                        >
+                            <div className="p-6 border-b border-border/50 flex justify-between items-center">
+                                <h2 className="text-xl font-bold flex items-center gap-2">
+                                    <Calculator className="h-5 w-5 text-primary" />
+                                    New Rule
+                                </h2>
+                                <Button variant="ghost" size="sm" onClick={() => setShowAddRule(false)}>✕</Button>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Rule Name</Label>
+                                    <Input
+                                        value={newRule.name}
+                                        onChange={e => setNewRule({ ...newRule, name: e.target.value })}
+                                        placeholder="e.g. Sales Quarter Bonus"
+                                    />
                                 </div>
-                                <div className="p-6 space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label>Rule Name</Label>
+                                        <Label>Category</Label>
+                                        <Select onValueChange={(v: IncentiveCategory) => setNewRule({ ...newRule, category: v })}>
+                                            <SelectTrigger className="h-9">
+                                                <SelectValue placeholder="Select" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Sales">Sales</SelectItem>
+                                                <SelectItem value="Performance">Performance</SelectItem>
+                                                <SelectItem value="Retention">Retention</SelectItem>
+                                                <SelectItem value="Adhoc">Adhoc</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Recurrence</Label>
+                                        <Select onValueChange={(v: RecurrenceType) => setNewRule({ ...newRule, recurrenceType: v })}>
+                                            <SelectTrigger className="h-9">
+                                                <SelectValue placeholder="Select" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="OneTime">One Time</SelectItem>
+                                                <SelectItem value="Monthly">Monthly</SelectItem>
+                                                <SelectItem value="Quarterly">Quarterly</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Duration (Months)</Label>
                                         <Input
-                                            value={newRule.name}
-                                            onChange={e => setNewRule({ ...newRule, name: e.target.value })}
-                                            placeholder="e.g. Sales Quarter Bonus"
+                                            type="number"
+                                            value={newRule.recurrenceCount}
+                                            onChange={e => setNewRule({ ...newRule, recurrenceCount: Number(e.target.value) })}
+                                            min={1}
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label>Category</Label>
-                                            <Select onValueChange={(v: IncentiveCategory) => setNewRule({ ...newRule, category: v })}>
-                                                <SelectTrigger className="h-9">
-                                                    <SelectValue placeholder="Select" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Sales">Sales</SelectItem>
-                                                    <SelectItem value="Performance">Performance</SelectItem>
-                                                    <SelectItem value="Retention">Retention</SelectItem>
-                                                    <SelectItem value="Adhoc">Adhoc</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Recurrence</Label>
-                                            <Select onValueChange={(v: RecurrenceType) => setNewRule({ ...newRule, recurrenceType: v })}>
-                                                <SelectTrigger className="h-9">
-                                                    <SelectValue placeholder="Select" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="OneTime">One Time</SelectItem>
-                                                    <SelectItem value="Monthly">Monthly</SelectItem>
-                                                    <SelectItem value="Quarterly">Quarterly</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label>Duration (Months)</Label>
-                                            <Input
-                                                type="number"
-                                                value={newRule.recurrenceCount}
-                                                onChange={e => setNewRule({ ...newRule, recurrenceCount: Number(e.target.value) })}
-                                                min={1}
+                                    <div className="space-y-2">
+                                        <Label>PF Applicable</Label>
+                                        <div className="flex items-center gap-2 pt-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={newRule.pfApplicable}
+                                                onChange={e => setNewRule({ ...newRule, pfApplicable: e.target.checked })}
                                             />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>PF Applicable</Label>
-                                            <div className="flex items-center gap-2 pt-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={newRule.pfApplicable}
-                                                    onChange={e => setNewRule({ ...newRule, pfApplicable: e.target.checked })}
-                                                />
-                                                <span className="text-xs">Yes</span>
-                                            </div>
+                                            <span className="text-xs">Yes</span>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label className="flex justify-between">
-                                            <span>Formula expression</span>
-                                            <span className="text-[10px] text-primary">monthlyBasic, monthlyCTC</span>
-                                        </Label>
-                                        <Input
-                                            className="font-mono text-sm bg-muted/20"
-                                            value={newRule.formulaExpression}
-                                            onChange={e => setNewRule({ ...newRule, formulaExpression: e.target.value })}
-                                        />
-                                    </div>
                                 </div>
-                                <div className="p-6 border-t border-border/50 flex justify-end gap-3">
-                                    <Button variant="outline" onClick={() => setShowAddRule(false)}>Cancel</Button>
-                                    <Button onClick={handleCreateRule} className="bg-primary shadow-lg shadow-primary/20">
-                                        Save Rule
-                                    </Button>
+                                <div className="space-y-2">
+                                    <Label className="flex justify-between">
+                                        <span>Formula expression</span>
+                                        <span className="text-[10px] text-primary">monthlyBasic, monthlyCTC</span>
+                                    </Label>
+                                    <Input
+                                        className="font-mono text-sm bg-muted/20"
+                                        value={newRule.formulaExpression}
+                                        onChange={e => setNewRule({ ...newRule, formulaExpression: e.target.value })}
+                                    />
                                 </div>
-                            </motion.div>
-                        </div>
+                            </div>
+                            <div className="p-6 border-t border-border/50 flex justify-end gap-3">
+                                <Button variant="outline" onClick={() => setShowAddRule(false)}>Cancel</Button>
+                                <Button onClick={handleCreateRule} className="bg-primary shadow-lg shadow-primary/20">
+                                    Save Rule
+                                </Button>
+                            </div>
+                        </motion.div>
                     </div>
                 )}
             </AnimatePresence>
@@ -574,102 +568,99 @@ export default function Incentives() {
             {/* Bulk Assign Modal */}
             <AnimatePresence>
                 {showAssignModal && (
-                    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md">
-                        <div className="flex min-h-screen items-start md:items-center justify-center p-4 py-12 md:py-4">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95, y: 40 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: 40 }}
-                                transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                                className="bg-background border border-border/50 rounded-2xl w-full max-w-lg shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden ring-1 ring-white/10"
-                            >
-                                <div className="p-6 border-b border-border/50 flex justify-between items-center">
-                                    <h2 className="text-lg font-bold flex items-center gap-2">
-                                        <Send className="h-5 w-5 text-primary" />
-                                        Assign {selectedRuleForAssign?.name}
-                                    </h2>
-                                    <Button variant="ghost" size="sm" onClick={() => setShowAssignModal(false)}>✕</Button>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="bg-background border border-border rounded-2xl w-full max-w-lg shadow-2xl"
+                        >
+                            <div className="p-6 border-b border-border/50 flex justify-between items-center">
+                                <h2 className="text-lg font-bold flex items-center gap-2">
+                                    <Send className="h-5 w-5 text-primary" />
+                                    Assign {selectedRuleForAssign?.name}
+                                </h2>
+                                <Button variant="ghost" size="sm" onClick={() => setShowAssignModal(false)}>✕</Button>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Select Targets</Label>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant={assignmentTarget === 'individual' ? 'default' : 'outline'}
+                                            size="sm"
+                                            className="text-xs"
+                                            onClick={() => setAssignmentTarget('individual')}
+                                        >
+                                            Individuals
+                                        </Button>
+                                        <Button
+                                            variant={assignmentTarget === 'department' ? 'default' : 'outline'}
+                                            size="sm"
+                                            className="text-xs"
+                                            onClick={() => setAssignmentTarget('department')}
+                                        >
+                                            By Dept
+                                        </Button>
+                                        <Button
+                                            variant={assignmentTarget === 'all' ? 'default' : 'outline'}
+                                            size="sm"
+                                            className="text-xs"
+                                            onClick={() => setAssignmentTarget('all')}
+                                        >
+                                            All
+                                        </Button>
+                                    </div>
                                 </div>
-                                <div className="p-6 space-y-4">
+
+                                {assignmentTarget === 'department' && (
                                     <div className="space-y-2">
-                                        <Label>Select Targets</Label>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant={assignmentTarget === 'individual' ? 'default' : 'outline'}
-                                                size="sm"
-                                                className="text-xs"
-                                                onClick={() => setAssignmentTarget('individual')}
-                                            >
-                                                Individuals
-                                            </Button>
-                                            <Button
-                                                variant={assignmentTarget === 'department' ? 'default' : 'outline'}
-                                                size="sm"
-                                                className="text-xs"
-                                                onClick={() => setAssignmentTarget('department')}
-                                            >
-                                                By Dept
-                                            </Button>
-                                            <Button
-                                                variant={assignmentTarget === 'all' ? 'default' : 'outline'}
-                                                size="sm"
-                                                className="text-xs"
-                                                onClick={() => setAssignmentTarget('all')}
-                                            >
-                                                All
-                                            </Button>
+                                        <Label>Which Department?</Label>
+                                        <Select onValueChange={setTargetDept}>
+                                            <SelectTrigger className="h-9">
+                                                <SelectValue placeholder="Choose Department" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Array.from(new Set(employees.map(e => e.department))).map(dept => (
+                                                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+
+                                {assignmentTarget === 'individual' && (
+                                    <div className="space-y-2">
+                                        <Label>Select Personnel</Label>
+                                        <div className="max-h-[200px] overflow-y-auto border border-border/50 rounded-lg p-2 space-y-1 bg-muted/20">
+                                            {employees.map(emp => (
+                                                <label key={emp.id} className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="rounded border-border h-3 w-3"
+                                                        checked={targetEmployeeIds.includes(emp.id)}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) setTargetEmployeeIds([...targetEmployeeIds, emp.id]);
+                                                            else setTargetEmployeeIds(targetEmployeeIds.filter(id => id !== emp.id));
+                                                        }}
+                                                    />
+                                                    <div className="text-xs">
+                                                        <p className="font-medium">{emp.firstName} {emp.lastName}</p>
+                                                        <p className="text-[10px] text-muted-foreground uppercase">{emp.department}</p>
+                                                    </div>
+                                                </label>
+                                            ))}
                                         </div>
                                     </div>
-
-                                    {assignmentTarget === 'department' && (
-                                        <div className="space-y-2">
-                                            <Label>Which Department?</Label>
-                                            <Select onValueChange={setTargetDept}>
-                                                <SelectTrigger className="h-9">
-                                                    <SelectValue placeholder="Choose Department" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {Array.from(new Set(employees.map(e => e.department))).map(dept => (
-                                                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    )}
-
-                                    {assignmentTarget === 'individual' && (
-                                        <div className="space-y-2">
-                                            <Label>Select Personnel</Label>
-                                            <div className="max-h-[200px] overflow-y-auto border border-border/50 rounded-lg p-2 space-y-1 bg-muted/20">
-                                                {employees.map(emp => (
-                                                    <label key={emp.id} className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            className="rounded border-border h-3 w-3"
-                                                            checked={targetEmployeeIds.includes(emp.id)}
-                                                            onChange={(e) => {
-                                                                if (e.target.checked) setTargetEmployeeIds([...targetEmployeeIds, emp.id]);
-                                                                else setTargetEmployeeIds(targetEmployeeIds.filter(id => id !== emp.id));
-                                                            }}
-                                                        />
-                                                        <div className="text-xs">
-                                                            <p className="font-medium">{emp.firstName} {emp.lastName}</p>
-                                                            <p className="text-[10px] text-muted-foreground uppercase">{emp.department}</p>
-                                                        </div>
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="p-6 border-t border-border/50 flex justify-end gap-3">
-                                    <Button variant="outline" size="sm" onClick={() => setShowAssignModal(false)}>Cancel</Button>
-                                    <Button size="sm" onClick={handleExecuteAssignment} className="bg-primary shadow-lg shadow-primary/20">
-                                        Execute Bulk Assign
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        </div>
+                                )}
+                            </div>
+                            <div className="p-6 border-t border-border/50 flex justify-end gap-3">
+                                <Button variant="outline" size="sm" onClick={() => setShowAssignModal(false)}>Cancel</Button>
+                                <Button size="sm" onClick={handleExecuteAssignment} className="bg-primary shadow-lg shadow-primary/20">
+                                    Execute Bulk Assign
+                                </Button>
+                            </div>
+                        </motion.div>
                     </div>
                 )}
             </AnimatePresence>

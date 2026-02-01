@@ -168,12 +168,12 @@ const StatsCard = React.forwardRef<HTMLDivElement, StatsCardProps>(
             </div>
           )}
         </div>
-        <div className="mt-3 space-y-0.5">
-          <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">{title}</p>
+        <div className="mt-4 space-y-1">
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
           <motion.p
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            className="text-xl font-bold tracking-tight text-foreground md:text-2xl"
+            className="text-2xl font-bold tracking-tight text-foreground md:text-3xl"
           >
             {value}
           </motion.p>
