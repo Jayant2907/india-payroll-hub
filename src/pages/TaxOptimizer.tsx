@@ -42,18 +42,32 @@ import { getTaxSettings, getEmployees } from '@/lib/storage';
 import { optimizeTaxRegime, type OptimizerInput } from '@/lib/payroll-logic/tax-optimizer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CHART_COLORS = ['hsl(262, 80%, 65%)', 'hsl(173, 80%, 50%)', 'hsl(47, 96%, 58%)', 'hsl(340, 75%, 60%)'];
 
 export default function TaxOptimizer() {
+    const { user } = useAuth();
+    const isAdmin = user?.role === 'admin' || user?.role === 'accountant';
+
     const taxSettings = useMemo(() => getTaxSettings(), []);
     const employees = useMemo(() => getEmployees(), []);
 
-    const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(employees[0]?.id || '');
+    // For employees, force selection to themselves. For admins, default to first or selected.
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+
+    useEffect(() => {
+        if (!isAdmin && user?.employeeId) {
+            setSelectedEmployeeId(user.employeeId);
+        } else if (isAdmin && employees.length > 0 && !selectedEmployeeId) {
+            setSelectedEmployeeId(employees[0].id);
+        }
+    }, [isAdmin, user, employees]);
+
     const [showDebug, setShowDebug] = useState(false);
 
     const selectedEmployee = useMemo(() =>
-        employees.find(e => e.id === selectedEmployeeId) || employees[0],
+        employees.find(e => e.id === selectedEmployeeId), // Don't default fall back here, handle null gracefully
         [selectedEmployeeId, employees]);
 
     // Form state with default values
@@ -142,15 +156,17 @@ export default function TaxOptimizer() {
                         <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                             FY {taxSettings.fiscalYear}
                         </Badge>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-2 text-[10px] gap-1 opacity-50 hover:opacity-100"
-                            onClick={() => setShowDebug(!showDebug)}
-                        >
-                            <Bug className="h-3 w-3" />
-                            Debug
-                        </Button>
+                        {isAdmin && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-[10px] gap-1 opacity-50 hover:opacity-100"
+                                onClick={() => setShowDebug(!showDebug)}
+                            >
+                                <Bug className="h-3 w-3" />
+                                Debug
+                            </Button>
+                        )}
                     </div>
                 }
             />
@@ -170,18 +186,25 @@ export default function TaxOptimizer() {
                                 Financial Inputs
                             </BentoCardTitle>
                             <div className="w-[180px]">
-                                <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
-                                    <SelectTrigger className="h-8 text-xs bg-muted/50">
-                                        <SelectValue placeholder="Select Employee" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {employees.map(emp => (
-                                            <SelectItem key={emp.id} value={emp.id} className="text-xs">
-                                                {emp.firstName} {emp.lastName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                {isAdmin ? (
+                                    <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
+                                        <SelectTrigger className="h-8 text-xs bg-muted/50">
+                                            <SelectValue placeholder="Select Employee" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {employees.map(emp => (
+                                                <SelectItem key={emp.id} value={emp.id} className="text-xs">
+                                                    {emp.firstName} {emp.lastName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <div className="flex items-center gap-2 h-8 px-3 rounded bg-muted/50 text-xs font-medium text-muted-foreground border">
+                                        <span className="truncate max-w-[140px]">{selectedEmployee ? `${selectedEmployee.firstName} ${selectedEmployee.lastName}` : 'Loading...'}</span>
+                                        <Badge variant="secondary" className="text-[9px] h-4 px-1 ml-auto">YOU</Badge>
+                                    </div>
+                                )}
                             </div>
                         </BentoCardHeader>
                         <BentoCardContent className="space-y-4">

@@ -770,7 +770,21 @@ export const initializeDemoData = (): void => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      setIncentiveAllocations([allocation]);
+      const pendingAllocation: IncentiveAllocation = {
+        id: 'demo-alloc-2',
+        ruleId: 'rule-sales-1',
+        employeeId: 'emp-1',
+        departmentId: 'Engineering',
+        calculatedAmount: 5000,
+        payrollMonth: new Date().getMonth() + 1,
+        payrollYear: new Date().getFullYear(),
+        status: 'PendingApproval',
+        isRecovery: false,
+        sourceRuleVersion: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setIncentiveAllocations([allocation, pendingAllocation]);
     }
   }
 
