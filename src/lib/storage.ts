@@ -773,6 +773,48 @@ export const initializeDemoData = (): void => {
       setIncentiveAllocations([allocation]);
     }
   }
+
+  // Pre-seed Investment Declaration for testing HR flow
+  const declarationsKey = 'app_inv_proof_declarations';
+  if (!localStorage.getItem(declarationsKey)) {
+    const demoDeclarations = [{
+      id: 'decl-demo-1',
+      employeeId: 'emp-2', // Priya Patel
+      fiscalYear: '2024-25',
+      regime: 'old',
+      isRegimeLocked: true,
+      status: 'Submitted',
+      submittedAt: new Date().toISOString(),
+      sections: {
+        '80C': {
+          type: '80C',
+          declaredAmount: 45000,
+          approvedAmount: 0,
+          items: [{
+            id: 'item-demo-1',
+            description: 'HDFC Life Insurance',
+            declaredAmount: 25000,
+            approvedAmount: 0,
+            proofIds: ['proof-1'],
+            status: 'Pending'
+          }, {
+            id: 'item-demo-2',
+            description: 'PPF Contribution',
+            declaredAmount: 20000,
+            approvedAmount: 0,
+            proofIds: ['proof-2'],
+            status: 'Pending'
+          }]
+        },
+        '80D': { type: '80D', declaredAmount: 0, approvedAmount: 0, items: [] },
+        'HRA': { type: 'HRA', declaredAmount: 0, approvedAmount: 0, items: [] },
+        'NPS': { type: 'NPS', declaredAmount: 0, approvedAmount: 0, items: [] },
+        'LTA': { type: 'LTA', declaredAmount: 0, approvedAmount: 0, items: [] },
+        'Other': { type: 'Other', declaredAmount: 0, approvedAmount: 0, items: [] },
+      }
+    }];
+    localStorage.setItem(declarationsKey, JSON.stringify(demoDeclarations));
+  }
 };
 
 export const forceResetDemoData = (): void => {

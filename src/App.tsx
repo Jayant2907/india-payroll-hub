@@ -21,6 +21,8 @@ import TaxOptimizer from "@/pages/TaxOptimizer";
 import Incentives from "@/pages/Incentives";
 import MyProfile from "@/pages/MyProfile";
 import NotFound from "@/pages/NotFound";
+import InvestmentProofs from "@/pages/InvestmentProofs";
+import VerificationPortal from "@/pages/VerificationPortal";
 
 const queryClient = new QueryClient();
 
@@ -105,6 +107,14 @@ const App = () => (
                   }
                 />
                 <Route
+                  path="/payroll/verification"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin', 'accountant']}>
+                      <VerificationPortal />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/settlements"
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
@@ -119,6 +129,14 @@ const App = () => (
                   element={
                     <ProtectedRoute allowedRoles={['employee']}>
                       <MyProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/investments"
+                  element={
+                    <ProtectedRoute allowedRoles={['employee']}>
+                      <InvestmentProofs />
                     </ProtectedRoute>
                   }
                 />
