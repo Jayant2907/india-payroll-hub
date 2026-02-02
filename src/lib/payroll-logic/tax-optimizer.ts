@@ -4,7 +4,7 @@
  */
 
 import { calculateNewRegimeTax, calculateOldRegimeTax, type TaxCalculationInput } from './tax-calculator';
-import type { TaxSettings } from '@/types/payroll';
+import type { TaxSettings, YearlyTaxConfig } from '@/types/payroll';
 
 export interface OptimizerInput {
     annualGrossIncome: number;
@@ -13,6 +13,7 @@ export interface OptimizerInput {
     rentPaid?: number;
     isMetro?: boolean;
     taxSettings: TaxSettings;
+    fiscalYear?: string; // Support for versioned tax optimization
     investments?: {
         section80C?: number;
         section80D?: number;
@@ -50,10 +51,19 @@ export interface OptimizerResult {
 }
 
 /**
+ * Helper to get the correct tax configuration
+ */
+function getTaxConfig(settings: TaxSettings, fiscalYear?: string): YearlyTaxConfig {
+    const targetYear = fiscalYear || settings.activeFiscalYear;
+    return settings.yearlyConfigs.find(c => c.fiscalYear === targetYear) || settings.yearlyConfigs[0];
+}
+
+/**
  * Compare both tax regimes and recommend optimal choice
  */
 export function optimizeTaxRegime(input: OptimizerInput): OptimizerResult {
-    const { annualGrossIncome, basicSalary, hra, rentPaid, isMetro, taxSettings, investments } = input;
+    const { annualGrossIncome, basicSalary, hra, rentPaid, isMetro, taxSettings, investments, fiscalYear } = input;
+    const config = getTaxConfig(taxSettings, fiscalYear);
 
     // Calculate Old Regime
     const oldRegimeInput: TaxCalculationInput = {
@@ -64,12 +74,13 @@ export function optimizeTaxRegime(input: OptimizerInput): OptimizerResult {
         rentPaid,
         isMetro,
         taxSettings,
+        fiscalYear,
         investments,
     };
     const oldResult = calculateOldRegimeTax(oldRegimeInput);
 
     // Calculate New Regime
-    const newResult = calculateNewRegimeTax(annualGrossIncome, taxSettings);
+    const newResult = calculateNewRegimeTax(annualGrossIncome, taxSettings, fiscalYear);
 
     // Determine recommendation
     const recommendation = oldResult.totalTax <= newResult.totalTax ? 'old' : 'new';
@@ -78,7 +89,7 @@ export function optimizeTaxRegime(input: OptimizerInput): OptimizerResult {
     const savingsPercentage = higherTax > 0 ? (savingsAmount / higherTax) * 100 : 0;
 
     // Generate intelligent suggestions
-    const suggestions = generateSuggestions(input, oldResult, newResult, recommendation);
+    const suggestions = generateSuggestions(input, oldResult, newResult, recommendation, config);
 
     return {
         oldRegime: {
@@ -111,10 +122,11 @@ function generateSuggestions(
     input: OptimizerInput,
     oldResult: any,
     newResult: any,
-    recommendation: 'old' | 'new'
+    recommendation: 'old' | 'new',
+    config: YearlyTaxConfig
 ): OptimizerResult['suggestions'] {
     const suggestions: OptimizerResult['suggestions'] = [];
-    const { annualGrossIncome, taxSettings, investments = {} } = input;
+    const { annualGrossIncome, investments = {} } = input;
 
     // Recommendation explanation
     if (recommendation === 'new') {
@@ -128,7 +140,7 @@ function generateSuggestions(
             suggestions.push({
                 type: 'info',
                 title: 'Section 87A Rebate Applied',
-                description: 'Your taxable income is ≤ ₹7L, so you pay zero tax under New Regime!',
+                description: `Your taxable income is ≤ ₹${(config.section87ARebateLimit / 100000).toFixed(1)}L, so you pay zero tax under New Regime!`,
             });
         }
     } else {
@@ -142,7 +154,7 @@ function generateSuggestions(
     // Section 80C optimization (Old Regime only)
     if (recommendation === 'old') {
         const current80C = investments.section80C ?? 0;
-        const max80C = taxSettings.section80CLimit;
+        const max80C = config.section80CLimit;
         const shortfall = max80C - current80C;
 
         if (shortfall > 10000) {

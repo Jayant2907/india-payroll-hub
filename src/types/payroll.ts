@@ -136,12 +136,20 @@ export interface TaxSlab {
   taxRate: number;
 }
 
-export interface TaxSettings {
+
+export interface YearlyTaxConfig {
   fiscalYear: string;
   standardDeduction: number;
   section80CLimit: number;
   hraExemptionLimit: number;
+  section87ARebateLimit: number; // Added for scalability (7L vs 12L)
+  cessRate: number; // Added for scalability (currently 4%)
   slabs: TaxSlab[];
+}
+
+export interface TaxSettings {
+  activeFiscalYear: string;
+  yearlyConfigs: YearlyTaxConfig[];
 }
 
 // Payroll Processing

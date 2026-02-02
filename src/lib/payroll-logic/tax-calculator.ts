@@ -3,7 +3,7 @@
  * Supports both Old and New Tax Regimes with accurate slab-wise calculation
  */
 
-import type { TaxRegime, TaxSettings } from '@/types/payroll';
+import type { TaxRegime, TaxSettings, YearlyTaxConfig } from '@/types/payroll';
 
 export interface TaxCalculationInput {
   annualGrossIncome: number;
@@ -13,6 +13,7 @@ export interface TaxCalculationInput {
   rentPaid?: number;
   isMetro?: boolean;
   taxSettings: TaxSettings;
+  fiscalYear?: string; // Optional override, defaults to active
   investments?: {
     section80C?: number;
     section80D?: number;
@@ -39,6 +40,20 @@ export interface TaxCalculationResult {
 }
 
 /**
+ * Helper to get the correct tax configuration for a given year
+ */
+function getTaxConfig(settings: TaxSettings, fiscalYear?: string): YearlyTaxConfig {
+  const targetYear = fiscalYear || settings.activeFiscalYear;
+  const config = settings.yearlyConfigs.find(c => c.fiscalYear === targetYear);
+
+  if (!config) {
+    console.warn(`Tax config for FY ${targetYear} not found, falling back to first available.`);
+    return settings.yearlyConfigs[0];
+  }
+  return config;
+}
+
+/**
  * Calculate HRA exemption under Old Tax Regime
  */
 function calculateHRAExemption(
@@ -62,10 +77,10 @@ function calculateHRAExemption(
 function calculateSlabwiseTax(
   taxableIncome: number,
   regime: TaxRegime,
-  taxSettings: TaxSettings
+  config: YearlyTaxConfig
 ): { taxPayable: number; slabBreakdown: TaxCalculationResult['slabBreakdown'] } {
-  const slabs = taxSettings.slabs
-    .filter((s) => s.regime === regime && s.fiscalYear === taxSettings.fiscalYear)
+  const slabs = config.slabs
+    .filter((s) => s.regime === regime && s.fiscalYear === config.fiscalYear)
     .sort((a, b) => a.minIncome - b.minIncome);
 
   let taxPayable = 0;
@@ -103,23 +118,25 @@ function calculateSlabwiseTax(
  */
 export function calculateNewRegimeTax(
   annualGrossIncome: number,
-  taxSettings: TaxSettings
+  taxSettings: TaxSettings,
+  fiscalYear?: string
 ): TaxCalculationResult {
-  const standardDeduction = taxSettings.standardDeduction;
+  const config = getTaxConfig(taxSettings, fiscalYear);
+  const standardDeduction = config.standardDeduction;
   const taxableIncome = Math.max(0, annualGrossIncome - standardDeduction);
 
   const { taxPayable, slabBreakdown } = calculateSlabwiseTax(
     taxableIncome,
     'new',
-    taxSettings
+    config
   );
 
-  // Section 87A Rebate: If taxable income ≤ 7L, tax = 0 (as per Budget 2023)
-  const rebateApplied = taxableIncome <= 700000;
+  // Section 87A Rebate logic based on configuration
+  const rebateApplied = taxableIncome <= config.section87ARebateLimit;
   const finalTax = rebateApplied ? 0 : taxPayable;
 
-  // Health & Education Cess (4%)
-  const cess = Math.round(finalTax * 0.04);
+  // Health & Education Cess
+  const cess = Math.round(finalTax * (config.cessRate / 100));
   const totalTax = finalTax + cess;
 
   return {
@@ -143,13 +160,14 @@ export function calculateNewRegimeTax(
 export function calculateOldRegimeTax(
   input: TaxCalculationInput
 ): TaxCalculationResult {
-  const { annualGrossIncome, basicSalary, hra, rentPaid, isMetro, taxSettings, investments } = input;
+  const { annualGrossIncome, basicSalary, hra, rentPaid, isMetro, taxSettings, investments, fiscalYear } = input;
+  const config = getTaxConfig(taxSettings, fiscalYear);
 
   // Calculate all deductions
   const deductions: Record<string, number> = {};
 
   // Standard Deduction
-  deductions.standardDeduction = taxSettings.standardDeduction;
+  deductions.standardDeduction = config.standardDeduction;
 
   // HRA Exemption
   if (rentPaid && rentPaid > 0) {
@@ -158,17 +176,17 @@ export function calculateOldRegimeTax(
     const annualBasic = basicSalary * 12;
     deductions.hraExemption = Math.min(
       calculateHRAExemption(annualHRA, annualBasic, annualRent, isMetro ?? false),
-      taxSettings.hraExemptionLimit
+      config.hraExemptionLimit
     );
   } else {
     deductions.hraExemption = 0;
   }
 
   // Section 80C (PPF, ELSS, LIC, etc.)
-  deductions.section80C = Math.min(investments?.section80C ?? 0, taxSettings.section80CLimit);
+  deductions.section80C = Math.min(investments?.section80C ?? 0, config.section80CLimit);
 
   // Section 80D (Health Insurance)
-  deductions.section80D = Math.min(investments?.section80D ?? 0, 25000); // Max 25K for non-senior
+  deductions.section80D = Math.min(investments?.section80D ?? 0, 25000); // Max 25K for non-senior - TODO: Make this configurable if needed
 
   // Section 80CCD(1B) (Additional NPS)
   deductions.nps80CCD1B = Math.min(investments?.nps80CCD1B ?? 0, 50000);
@@ -182,11 +200,11 @@ export function calculateOldRegimeTax(
   const { taxPayable, slabBreakdown } = calculateSlabwiseTax(
     taxableIncome,
     'old',
-    taxSettings
+    config
   );
 
-  // Health & Education Cess (4%)
-  const cess = Math.round(taxPayable * 0.04);
+  // Health & Education Cess
+  const cess = Math.round(taxPayable * (config.cessRate / 100));
   const totalTax = taxPayable + cess;
 
   return {
@@ -207,7 +225,7 @@ export function calculateOldRegimeTax(
  */
 export function calculateEmployeeTax(input: TaxCalculationInput): TaxCalculationResult {
   if (input.regime === 'new') {
-    return calculateNewRegimeTax(input.annualGrossIncome, input.taxSettings);
+    return calculateNewRegimeTax(input.annualGrossIncome, input.taxSettings, input.fiscalYear);
   } else {
     return calculateOldRegimeTax(input);
   }

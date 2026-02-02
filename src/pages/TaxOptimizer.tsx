@@ -53,6 +53,14 @@ export default function TaxOptimizer() {
     const taxSettings = useMemo(() => getTaxSettings(), []);
     const employees = useMemo(() => getEmployees(), []);
 
+    // Fiscal Year Selection
+    const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>(taxSettings.activeFiscalYear);
+
+    // Resolve current config based on selection
+    const currentConfig = useMemo(() =>
+        taxSettings.yearlyConfigs.find(c => c.fiscalYear === selectedFiscalYear) || taxSettings.yearlyConfigs[0],
+        [taxSettings, selectedFiscalYear]);
+
     // For employees, force selection to themselves. For admins, default to first or selected.
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
 
@@ -108,6 +116,7 @@ export default function TaxOptimizer() {
             rentPaid: formData.rentPaid,
             isMetro: formData.isMetro,
             taxSettings,
+            fiscalYear: selectedFiscalYear,
             investments: {
                 section80C: formData.section80C,
                 section80D: formData.section80D,
@@ -116,7 +125,7 @@ export default function TaxOptimizer() {
             }
         };
         return optimizeTaxRegime(input);
-    }, [formData, taxSettings]);
+    }, [formData, taxSettings, selectedFiscalYear]);
 
     const formatCurrency = (v: number) =>
         new Intl.NumberFormat('en-IN', {
@@ -153,9 +162,18 @@ export default function TaxOptimizer() {
                 icon={<Dna className="h-7 w-7 text-primary animate-pulse" />}
                 badge={
                     <div className="flex gap-2">
-                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                            FY {taxSettings.fiscalYear}
-                        </Badge>
+                        <Select value={selectedFiscalYear} onValueChange={setSelectedFiscalYear}>
+                            <SelectTrigger className="h-8 w-[140px] text-xs bg-primary/10 border-primary/20 text-primary">
+                                <SelectValue placeholder="FY Year" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {taxSettings.yearlyConfigs.map(config => (
+                                    <SelectItem key={config.fiscalYear} value={config.fiscalYear} className="text-xs">
+                                        FY {config.fiscalYear}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                         {isAdmin && (
                             <Button
                                 variant="ghost"
@@ -259,12 +277,16 @@ export default function TaxOptimizer() {
                             </div>
 
                             <div className="pt-4 border-t border-border/50 space-y-4">
-                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Investments (Old Regime)</p>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Investments (Old Regime)</p>
+                                    <Badge variant="outline" className="text-[9px] h-5">Config for {selectedFiscalYear}</Badge>
+                                </div>
+
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <Label className="flex justify-between">
                                             <span>Section 80C</span>
-                                            <span className="text-[10px] text-primary">Limit: ₹1.5L</span>
+                                            <span className="text-[10px] text-primary">Limit: {formatCurrency(currentConfig.section80CLimit)}</span>
                                         </Label>
                                         <Input
                                             type="number"
@@ -470,7 +492,7 @@ export default function TaxOptimizer() {
                                                 <Calculator className="h-6 w-6 text-primary" />
                                             </div>
                                             <h4 className="text-lg font-bold mb-1">Old Regime Total Tax</h4>
-                                            <p className="text-muted-foreground text-sm mb-4">Including 4% Education Cess</p>
+                                            <p className="text-muted-foreground text-sm mb-4">Including {currentConfig.cessRate}% Higher Edu Cess</p>
                                             <div className="text-4xl font-black text-primary">
                                                 {formatCurrency(optimizerResult.oldRegime.totalTax)}
                                             </div>
@@ -495,7 +517,7 @@ export default function TaxOptimizer() {
                                                 <Calculator className="h-6 w-6 text-emerald-400" />
                                             </div>
                                             <h4 className="text-lg font-bold mb-1">New Regime Total Tax</h4>
-                                            <p className="text-muted-foreground text-sm mb-4">Standard Deduction: {formatCurrency(taxSettings.standardDeduction)}</p>
+                                            <p className="text-muted-foreground text-sm mb-4">Standard Deduction: {formatCurrency(currentConfig.standardDeduction)}</p>
                                             <div className="text-4xl font-black text-emerald-400">
                                                 {formatCurrency(optimizerResult.newRegime.totalTax)}
                                             </div>
@@ -508,22 +530,22 @@ export default function TaxOptimizer() {
                                             <Label className="text-[10px] uppercase font-bold text-muted-foreground">Taxable Slab Calculation</Label>
                                             <div className="space-y-2">
                                                 <div className="p-3 rounded-xl border border-border/50 bg-muted/10">
-                                                    <div className="flex justify-between text-xs mb-1">
-                                                        <span>Slab 0-3L @ 0%</span>
-                                                        <span className="text-muted-foreground">₹0</span>
-                                                    </div>
-                                                    <div className="flex justify-between text-xs mb-1">
-                                                        <span>Slab 3-6L @ 5%</span>
-                                                        <span className="text-muted-foreground">₹15,000</span>
-                                                    </div>
-                                                    <div className="flex justify-between text-xs mb-1">
-                                                        <span>Slab 6-9L @ 10%</span>
-                                                        <span className="text-muted-foreground">₹30,000</span>
-                                                    </div>
-                                                    <div className="flex justify-between text-xs font-bold mt-2 pt-2 border-t border-dashed">
-                                                        <span>Total Slab Tax</span>
-                                                        <span>{formatCurrency(optimizerResult.newRegime.taxPayable)}</span>
-                                                    </div>
+                                                    {optimizerResult.newRegime.slabBreakdown ? (
+                                                        <>
+                                                            {optimizerResult.newRegime.slabBreakdown.map((slab, i) => (
+                                                                <div key={i} className="flex justify-between text-xs mb-1">
+                                                                    <span>{slab.slab} @ {slab.rate}%</span>
+                                                                    <span className="text-muted-foreground">{formatCurrency(slab.tax)}</span>
+                                                                </div>
+                                                            ))}
+                                                            <div className="flex justify-between text-xs font-bold mt-2 pt-2 border-t border-dashed">
+                                                                <span>Total Slab Tax</span>
+                                                                <span>{formatCurrency(optimizerResult.newRegime.taxPayable)}</span>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <div className="text-xs text-muted-foreground text-center py-2">No tax applicable</div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

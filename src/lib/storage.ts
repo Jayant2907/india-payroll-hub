@@ -298,24 +298,54 @@ function getDefaultPTSlabs(): PTSlab[] {
 
 function getDefaultTaxSettings(): TaxSettings {
   return {
-    fiscalYear: '2024-25',
-    standardDeduction: 50000,
-    section80CLimit: 150000,
-    hraExemptionLimit: 100000,
-    slabs: [
-      // New Regime
-      { id: 'tax-1', regime: 'new', fiscalYear: '2024-25', minIncome: 0, maxIncome: 300000, taxRate: 0 },
-      { id: 'tax-2', regime: 'new', fiscalYear: '2024-25', minIncome: 300001, maxIncome: 600000, taxRate: 5 },
-      { id: 'tax-3', regime: 'new', fiscalYear: '2024-25', minIncome: 600001, maxIncome: 900000, taxRate: 10 },
-      { id: 'tax-4', regime: 'new', fiscalYear: '2024-25', minIncome: 900001, maxIncome: 1200000, taxRate: 15 },
-      { id: 'tax-5', regime: 'new', fiscalYear: '2024-25', minIncome: 1200001, maxIncome: 1500000, taxRate: 20 },
-      { id: 'tax-6', regime: 'new', fiscalYear: '2024-25', minIncome: 1500001, maxIncome: 99999999, taxRate: 30 },
-      // Old Regime
-      { id: 'tax-7', regime: 'old', fiscalYear: '2024-25', minIncome: 0, maxIncome: 250000, taxRate: 0 },
-      { id: 'tax-8', regime: 'old', fiscalYear: '2024-25', minIncome: 250001, maxIncome: 500000, taxRate: 5 },
-      { id: 'tax-9', regime: 'old', fiscalYear: '2024-25', minIncome: 500001, maxIncome: 1000000, taxRate: 20 },
-      { id: 'tax-10', regime: 'old', fiscalYear: '2024-25', minIncome: 1000001, maxIncome: 99999999, taxRate: 30 },
-    ],
+    activeFiscalYear: '2025-26', // Set new year as default active
+    yearlyConfigs: [
+      {
+        fiscalYear: '2024-25',
+        standardDeduction: 50000,
+        section80CLimit: 150000,
+        hraExemptionLimit: 100000,
+        section87ARebateLimit: 700000,
+        cessRate: 4,
+        slabs: [
+          // New Regime 2024-25
+          { id: 'tax-24-new-1', regime: 'new', fiscalYear: '2024-25', minIncome: 0, maxIncome: 300000, taxRate: 0 },
+          { id: 'tax-24-new-2', regime: 'new', fiscalYear: '2024-25', minIncome: 300001, maxIncome: 600000, taxRate: 5 },
+          { id: 'tax-24-new-3', regime: 'new', fiscalYear: '2024-25', minIncome: 600001, maxIncome: 900000, taxRate: 10 },
+          { id: 'tax-24-new-4', regime: 'new', fiscalYear: '2024-25', minIncome: 900001, maxIncome: 1200000, taxRate: 15 },
+          { id: 'tax-24-new-5', regime: 'new', fiscalYear: '2024-25', minIncome: 1200001, maxIncome: 1500000, taxRate: 20 },
+          { id: 'tax-24-new-6', regime: 'new', fiscalYear: '2024-25', minIncome: 1500001, maxIncome: 99999999, taxRate: 30 },
+          // Old Regime 2024-25
+          { id: 'tax-24-old-1', regime: 'old', fiscalYear: '2024-25', minIncome: 0, maxIncome: 250000, taxRate: 0 },
+          { id: 'tax-24-old-2', regime: 'old', fiscalYear: '2024-25', minIncome: 250001, maxIncome: 500000, taxRate: 5 },
+          { id: 'tax-24-old-3', regime: 'old', fiscalYear: '2024-25', minIncome: 500001, maxIncome: 1000000, taxRate: 20 },
+          { id: 'tax-24-old-4', regime: 'old', fiscalYear: '2024-25', minIncome: 1000001, maxIncome: 99999999, taxRate: 30 },
+        ]
+      },
+      {
+        fiscalYear: '2025-26',
+        standardDeduction: 75000,
+        section80CLimit: 150000,
+        hraExemptionLimit: 100000,
+        section87ARebateLimit: 1200000, // Increased rebate limit
+        cessRate: 4,
+        slabs: [
+          // New Regime 2025-26
+          { id: 'tax-25-new-1', regime: 'new', fiscalYear: '2025-26', minIncome: 0, maxIncome: 400000, taxRate: 0 },
+          { id: 'tax-25-new-2', regime: 'new', fiscalYear: '2025-26', minIncome: 400001, maxIncome: 800000, taxRate: 5 },
+          { id: 'tax-25-new-3', regime: 'new', fiscalYear: '2025-26', minIncome: 800001, maxIncome: 1200000, taxRate: 10 },
+          { id: 'tax-25-new-4', regime: 'new', fiscalYear: '2025-26', minIncome: 1200001, maxIncome: 1600000, taxRate: 15 },
+          { id: 'tax-25-new-5', regime: 'new', fiscalYear: '2025-26', minIncome: 1600001, maxIncome: 2000000, taxRate: 20 },
+          { id: 'tax-25-new-6', regime: 'new', fiscalYear: '2025-26', minIncome: 2000001, maxIncome: 2400000, taxRate: 25 },
+          { id: 'tax-25-new-7', regime: 'new', fiscalYear: '2025-26', minIncome: 2400001, maxIncome: 99999999, taxRate: 30 },
+          // Old Regime 2025-26 (Assumed same as previous unless changed)
+          { id: 'tax-25-old-1', regime: 'old', fiscalYear: '2025-26', minIncome: 0, maxIncome: 250000, taxRate: 0 },
+          { id: 'tax-25-old-2', regime: 'old', fiscalYear: '2025-26', minIncome: 250001, maxIncome: 500000, taxRate: 5 },
+          { id: 'tax-25-old-3', regime: 'old', fiscalYear: '2025-26', minIncome: 500001, maxIncome: 1000000, taxRate: 20 },
+          { id: 'tax-25-old-4', regime: 'old', fiscalYear: '2025-26', minIncome: 1000001, maxIncome: 99999999, taxRate: 30 },
+        ]
+      }
+    ]
   };
 }
 

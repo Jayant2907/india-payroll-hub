@@ -7,25 +7,33 @@ import {
 import type { TaxSettings } from '@/types/payroll';
 
 // Mock tax settings for FY 2024-25
+// Mock tax settings for FY 2024-25
 const mockTaxSettings: TaxSettings = {
-    fiscalYear: '2024-25',
-    standardDeduction: 50000,
-    section80CLimit: 150000,
-    hraExemptionLimit: 100000,
-    slabs: [
-        // New Regime
-        { id: 'tax-1', regime: 'new', fiscalYear: '2024-25', minIncome: 0, maxIncome: 300000, taxRate: 0 },
-        { id: 'tax-2', regime: 'new', fiscalYear: '2024-25', minIncome: 300001, maxIncome: 600000, taxRate: 5 },
-        { id: 'tax-3', regime: 'new', fiscalYear: '2024-25', minIncome: 600001, maxIncome: 900000, taxRate: 10 },
-        { id: 'tax-4', regime: 'new', fiscalYear: '2024-25', minIncome: 900001, maxIncome: 1200000, taxRate: 15 },
-        { id: 'tax-5', regime: 'new', fiscalYear: '2024-25', minIncome: 1200001, maxIncome: 1500000, taxRate: 20 },
-        { id: 'tax-6', regime: 'new', fiscalYear: '2024-25', minIncome: 1500001, maxIncome: 99999999, taxRate: 30 },
-        // Old Regime
-        { id: 'tax-7', regime: 'old', fiscalYear: '2024-25', minIncome: 0, maxIncome: 250000, taxRate: 0 },
-        { id: 'tax-8', regime: 'old', fiscalYear: '2024-25', minIncome: 250001, maxIncome: 500000, taxRate: 5 },
-        { id: 'tax-9', regime: 'old', fiscalYear: '2024-25', minIncome: 500001, maxIncome: 1000000, taxRate: 20 },
-        { id: 'tax-10', regime: 'old', fiscalYear: '2024-25', minIncome: 1000001, maxIncome: 99999999, taxRate: 30 },
-    ],
+    activeFiscalYear: '2024-25',
+    yearlyConfigs: [
+        {
+            fiscalYear: '2024-25',
+            standardDeduction: 50000,
+            section80CLimit: 150000,
+            hraExemptionLimit: 100000,
+            section87ARebateLimit: 700000,
+            cessRate: 4,
+            slabs: [
+                // New Regime
+                { id: 'tax-1', regime: 'new', fiscalYear: '2024-25', minIncome: 0, maxIncome: 300000, taxRate: 0 },
+                { id: 'tax-2', regime: 'new', fiscalYear: '2024-25', minIncome: 300001, maxIncome: 600000, taxRate: 5 },
+                { id: 'tax-3', regime: 'new', fiscalYear: '2024-25', minIncome: 600001, maxIncome: 900000, taxRate: 10 },
+                { id: 'tax-4', regime: 'new', fiscalYear: '2024-25', minIncome: 900001, maxIncome: 1200000, taxRate: 15 },
+                { id: 'tax-5', regime: 'new', fiscalYear: '2024-25', minIncome: 1200001, maxIncome: 1500000, taxRate: 20 },
+                { id: 'tax-6', regime: 'new', fiscalYear: '2024-25', minIncome: 1500001, maxIncome: 99999999, taxRate: 30 },
+                // Old Regime
+                { id: 'tax-7', regime: 'old', fiscalYear: '2024-25', minIncome: 0, maxIncome: 250000, taxRate: 0 },
+                { id: 'tax-8', regime: 'old', fiscalYear: '2024-25', minIncome: 250001, maxIncome: 500000, taxRate: 5 },
+                { id: 'tax-9', regime: 'old', fiscalYear: '2024-25', minIncome: 500001, maxIncome: 1000000, taxRate: 20 },
+                { id: 'tax-10', regime: 'old', fiscalYear: '2024-25', minIncome: 1000001, maxIncome: 99999999, taxRate: 30 },
+            ],
+        }
+    ]
 };
 
 describe('Tax Calculator - New Regime', () => {

@@ -75,6 +75,12 @@ export default function RunPayroll() {
     const ptSlab = ptSlabs.find(s => s.state === (emp.state || 'Karnataka') && grossEarnings >= s.minSalary && grossEarnings <= s.maxSalary);
     const ptDeduction = ptSlab?.taxAmount || 0;
 
+
+    // Determine Fiscal Year for Tax Calculation
+    const fiscalYearStart = currentMonth >= 4 ? currentYear : currentYear - 1;
+    const fiscalYearEnd = (fiscalYearStart + 1) % 100; // e.g., 26 for 2026
+    const fiscalYear = `${fiscalYearStart}-${fiscalYearEnd}`;
+
     // Real-time tax calculation with Variable Pay impact
     const projectedVariable = totalVarEarnings * 12; // Simple projection for tax spiking demo
     const taxCalculation = calculateEmployeeTax({
@@ -83,6 +89,7 @@ export default function RunPayroll() {
       basicSalary: emp.annualCTC * 0.4 / 12,
       hra: emp.annualCTC * 0.2 / 12,
       taxSettings,
+      fiscalYear, // Inferred from payroll period
     });
 
     const incomeTaxDeduction = Math.round(taxCalculation.monthlyTDS);
